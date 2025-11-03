@@ -89,7 +89,10 @@ func main() {
 		httpSwagger.DocExpansion("list"),
 	))
 
-	// Enregistrez les routes d'authentification
+	
+
+	// Enregistrez les routes des produits
+routes.RegisterProductRoutes(r, client)
 	routes.RegisterAuthRoutes(r, client)
 
 	// Enregistrez les routes des produits
@@ -101,7 +104,10 @@ func main() {
 	// Enregistrez les routes des commandes
 	routes.RegisterOrderRoutes(r, client)
 
-		// Enregistrez les routes d'authentification
+		
+
+	// Enregistrez les routes des produits
+routes.RegisterProductRoutes(r, client)
 routes.RegisterAuthRoutes(r, client)
 
 	
