@@ -7,6 +7,7 @@ import (
 	"api/internal/utils"
 	"context"
 	"fmt"
+	"strings"
 )
 
 // Récupérer un user par son email
@@ -15,12 +16,26 @@ func GetUserByEmail(client *db.PrismaClient, email string) (*models.User, error)
 	u, err := client.User.FindUnique(
 		db.User.Email.Equals(email),
 	).Exec(ctx)
+
+	// Prisma Client Go peut retourner une erreur quand l'enregistrement n'est pas trouvé
+	// C'est un cas normal (l'utilisateur n'existe pas encore), donc on retourne nil, nil
 	if err != nil {
+		errStr := strings.ToLower(err.Error())
+		// Vérifier si c'est une erreur "not found" (cas attendu pour une inscription)
+		if strings.Contains(errStr, "not found") ||
+			strings.Contains(errStr, "does not exist") ||
+			strings.Contains(errStr, "errnotfound") ||
+			strings.Contains(errStr, "no record") {
+			return nil, nil
+		}
+		// Autre erreur : problème réel (connexion DB, etc.)
 		return nil, fmt.Errorf("Erreur de récupération user par email : %w", err)
 	}
+
 	if u == nil {
 		return nil, nil
 	}
+
 	return &models.User{
 		ID:        u.ID,
 		Email:     u.Email,
@@ -68,16 +83,24 @@ func CreateUser(client *db.PrismaClient, email string, password string) (*models
 
 // Récuperer un user par son ID
 func GetUserByID(client *db.PrismaClient, userID string) (*models.User, error) {
-
 	ctx := context.Background()
 	u, err := client.User.FindUnique(
-
 		db.User.ID.Equals(userID),
 	).Exec(ctx)
 
 	if err != nil {
+		errStr := strings.ToLower(err.Error())
+		// Vérifier si c'est une erreur "not found" (cas attendu)
+		if strings.Contains(errStr, "not found") ||
+			strings.Contains(errStr, "does not exist") ||
+			strings.Contains(errStr, "errnotfound") ||
+			strings.Contains(errStr, "no record") {
+			return nil, nil
+		}
+		// Autre erreur : problème réel
 		return nil, fmt.Errorf("Erreur de récupération user : %w", err)
 	}
+
 	if u == nil {
 		return nil, nil
 	}
