@@ -4,7 +4,6 @@ import (
 	"api/internal/db"
 	"api/internal/dtos"
 	"api/internal/utils"
-	"context"
 	"errors"
 )
 
@@ -95,4 +94,3 @@ func GetCurrentUser(client *db.PrismaClient, userID string) (*dtos.UserResponse,
 		UpdatedAt: user.UpdatedAt,
 	}, nil
 }
-
