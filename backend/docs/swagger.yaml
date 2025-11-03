@@ -1,0 +1,1133 @@
+basePath: /
+definitions:
+  docs.ErrorResponse:
+    properties:
+      error:
+        example: Message d'erreur
+        type: string
+    type: object
+  dtos.CategoryRequest:
+    description: Informations catégorie pour création/modification
+    properties:
+      name:
+        description: Nom de la catégorie
+        example: Visage
+        type: string
+    required:
+    - name
+    type: object
+  dtos.CategoryResponse:
+    description: Informations catégorie
+    properties:
+      createdAt:
+        description: Date de création
+        example: "2024-01-01T00:00:00Z"
+        type: string
+      id:
+        description: UUID de la catégorie
+        example: 550e8400-e29b-41d4-a716-446655440000
+        type: string
+      name:
+        description: Nom de la catégorie
+        example: Visage
+        type: string
+      updatedAt:
+        description: Date de mise à jour
+        example: "2024-01-01T00:00:00Z"
+        type: string
+    type: object
+  dtos.CreateOrderRequest:
+    description: Requête de création de commande
+    properties:
+      items:
+        description: Liste des items de la commande (minimum 1)
+        items:
+          $ref: '#/definitions/dtos.OrderItemRequest'
+        minItems: 1
+        type: array
+    required:
+    - items
+    type: object
+  dtos.LoginRequest:
+    description: Identifiants de connexion
+    properties:
+      email:
+        description: Email de l'utilisateur
+        example: user@example.com
+        type: string
+      password:
+        description: Mot de passe
+        example: password123
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  dtos.LoginResponse:
+    description: Réponse de connexion avec token JWT
+    properties:
+      token:
+        description: Token JWT
+        example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        type: string
+      user:
+        allOf:
+        - $ref: '#/definitions/dtos.UserResponse'
+        description: Informations de l'utilisateur
+    type: object
+  dtos.OrderItemRequest:
+    description: Item de commande avec produit et quantité
+    properties:
+      productID:
+        description: ID du produit
+        example: 550e8400-e29b-41d4-a716-446655440000
+        type: string
+      quantity:
+        description: Quantité commandée (doit être > 0)
+        example: 2
+        type: integer
+    required:
+    - productID
+    - quantity
+    type: object
+  dtos.OrderItemResponse:
+    description: Item de commande avec détails du produit
+    properties:
+      id:
+        description: UUID de l'item
+        example: 550e8400-e29b-41d4-a716-446655440000
+        type: string
+      price:
+        description: Prix unitaire au moment de la commande
+        example: 29.99
+        type: number
+      product:
+        allOf:
+        - $ref: '#/definitions/dtos.ProductResponse'
+        description: Détails du produit
+      quantity:
+        description: Quantité commandée
+        example: 2
+        type: integer
+    type: object
+  dtos.OrderResponse:
+    description: Informations complètes d'une commande
+    properties:
+      createdAt:
+        description: Date de création
+        example: "2024-01-01T00:00:00Z"
+        type: string
+      id:
+        description: UUID de la commande
+        example: 550e8400-e29b-41d4-a716-446655440000
+        type: string
+      orderDate:
+        description: Date de la commande
+        example: "2024-01-01T00:00:00Z"
+        type: string
+      orderItems:
+        description: Liste des items de la commande
+        items:
+          $ref: '#/definitions/dtos.OrderItemResponse'
+        type: array
+      status:
+        description: Statut de la commande
+        enum:
+        - PENDING
+        - SHIPPED
+        - DELIVERED
+        - CANCELLED
+        example: PENDING
+        type: string
+      totalAmount:
+        description: Montant total de la commande
+        example: 59.98
+        type: number
+      updatedAt:
+        description: Date de mise à jour
+        example: "2024-01-01T00:00:00Z"
+        type: string
+      userID:
+        description: ID de l'utilisateur
+        example: 550e8400-e29b-41d4-a716-446655440000
+        type: string
+    type: object
+  dtos.ProductRequest:
+    description: Informations produit pour création/modification
+    properties:
+      categoryID:
+        description: ID de la catégorie (optionnel)
+        example: 550e8400-e29b-41d4-a716-446655440000
+        type: string
+      description:
+        description: Description du produit
+        example: Crème hydratante pour peau sensible
+        type: string
+      imageURL:
+        description: URL de l'image du produit
+        example: https://example.com/image.jpg
+        type: string
+      name:
+        description: Nom du produit
+        example: Crème hydratante
+        type: string
+      price:
+        description: Prix en euros (doit être > 0)
+        example: 29.99
+        type: number
+      stock:
+        description: Quantité en stock
+        example: 50
+        minimum: 0
+        type: integer
+    required:
+    - name
+    - price
+    type: object
+  dtos.ProductResponse:
+    description: Informations produit avec catégorie
+    properties:
+      category:
+        allOf:
+        - $ref: '#/definitions/dtos.CategoryResponse'
+        description: Informations de la catégorie (si disponible)
+      categoryID:
+        description: ID de la catégorie
+        example: 550e8400-e29b-41d4-a716-446655440000
+        type: string
+      createdAt:
+        description: Date de création
+        example: "2024-01-01T00:00:00Z"
+        type: string
+      description:
+        description: Description
+        example: Crème hydratante pour peau sensible
+        type: string
+      id:
+        description: UUID du produit
+        example: 550e8400-e29b-41d4-a716-446655440000
+        type: string
+      imageURL:
+        description: URL de l'image
+        example: https://example.com/image.jpg
+        type: string
+      name:
+        description: Nom du produit
+        example: Crème hydratante
+        type: string
+      price:
+        description: Prix en euros
+        example: 29.99
+        type: number
+      stock:
+        description: Quantité en stock
+        example: 50
+        type: integer
+      updatedAt:
+        description: Date de mise à jour
+        example: "2024-01-01T00:00:00Z"
+        type: string
+    type: object
+  dtos.UpdateOrderStatusRequest:
+    description: Nouveau statut de commande
+    properties:
+      status:
+        description: Nouveau statut
+        enum:
+        - PENDING
+        - SHIPPED
+        - DELIVERED
+        - CANCELLED
+        example: SHIPPED
+        type: string
+    required:
+    - status
+    type: object
+  dtos.UserRequest:
+    description: Informations utilisateur pour inscription/modification
+    properties:
+      email:
+        description: Email de l'utilisateur
+        example: user@example.com
+        type: string
+      password:
+        description: Mot de passe (min 6 caractères)
+        example: password123
+        minLength: 6
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  dtos.UserResponse:
+    description: Informations utilisateur (sans mot de passe)
+    properties:
+      createdAt:
+        description: Date de création
+        example: "2024-01-01T00:00:00Z"
+        type: string
+      email:
+        description: Email de l'utilisateur
+        example: user@example.com
+        type: string
+      id:
+        description: UUID de l'utilisateur
+        example: 550e8400-e29b-41d4-a716-446655440000
+        type: string
+      role:
+        description: 'Rôle: USER ou ADMIN'
+        enum:
+        - USER
+        - ADMIN
+        example: USER
+        type: string
+      updatedAt:
+        description: Date de mise à jour
+        example: "2024-01-01T00:00:00Z"
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: "API REST complète pour une boutique de produits de soins (skincare
+    shop) avec authentification JWT et gestion des rôles.\nCette API permet de gérer
+    les produits, catégories, commandes et utilisateurs.\n\n## Authentification\nLa
+    plupart des endpoints nécessitent une authentification JWT. Pour tester les endpoints
+    protégés :\n\n**Étape 1 : Obtenir un token**\n1. Utilisez `/auth/register` pour
+    créer un compte OU `/auth/login` pour vous connecter\n2. Copiez le token JWT retourné
+    dans la réponse (champ \"token\")\n\n**Étape 2 : Autoriser les requêtes dans Swagger
+    UI**\n1. Cliquez sur le bouton **\"Authorize\"** (icône de cadenas) en haut à
+    droite de cette page\n2. Dans le champ \"Value\", entrez : `Bearer <votre-token>`
+    (remplacez `<votre-token>` par le token copié)\n3. Cliquez sur **\"Authorize\"**
+    puis **\"Close\"**\n\n**Étape 3 : Tester les endpoints**\nTous les endpoints protégés
+    sont maintenant accessibles. Vous pouvez cliquer sur \"Try it out\" et tester
+    chaque endpoint.\n\n## Rôles\n- **USER** : Peut voir les produits, créer des commandes,
+    voir ses propres commandes\n- **ADMIN** : Accès complet à toutes les ressources\n\n---\n\n##
+    \U0001F510 Compte de test Admin\n\n**Email:** `momo@ynov.com`\n**Password:** `Password2025`\n\nUtilisez
+    ce compte pour tester toutes les fonctionnalités admin dans l'API."
+  title: PORELO Skincare Shop API
+  version: "1.0"
+paths:
+  /admin/categories:
+    get:
+      consumes:
+      - application/json
+      description: Récupère la liste de toutes les catégories (admin uniquement)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dtos.CategoryResponse'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/docs.ErrorResponse'
+        "403":
+          description: Accès refusé - Admin requis
+          schema:
+            $ref: '#/definitions/docs.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/docs.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Liste toutes les catégories
+      tags:
+      - Categories
+    post:
+      consumes:
+      - application/json
+      description: Crée une nouvelle catégorie (admin uniquement)
+      parameters:
+      - description: Informations de la catégorie
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dtos.CategoryRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dtos.CategoryResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/docs.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/docs.ErrorResponse'
+        "403":
+          description: Accès refusé - Admin requis
+          schema:
+            $ref: '#/definitions/docs.ErrorResponse'
+        "409":
+          description: Catégorie avec ce nom existe déjà
+          schema:
+            $ref: '#/definitions/docs.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/docs.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Créer une catégorie
+      tags:
+      - Categories
+  /admin/categories/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Supprime une catégorie (admin uniquement)
+      parameters:
+      - description: ID de la catégorie
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/docs.ErrorResponse'
+        "403":
+          description: Accès refusé - Admin requis
+          schema:
+            $ref: '#/definitions/docs.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/docs.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/docs.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Supprimer une catégorie
+      tags:
+      - Categories
+    get:
+      consumes:
+      - application/json
+      description: Récupère les détails d'une catégorie par son ID (admin uniquement)
+      parameters:
+      - description: ID de la catégorie
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dtos.CategoryResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/docs.ErrorResponse'
+        "403":
+          description: Accès refusé - Admin requis
+          schema:
+            $ref: '#/definitions/docs.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/docs.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/docs.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Détails d'une catégorie
+      tags:
+      - Categories
+    put:
+      consumes:
+      - application/json
+      description: Met à jour une catégorie existante (admin uniquement)
+      parameters:
+      - description: ID de la catégorie
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Nouvelles informations de la catégorie
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dtos.CategoryRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dtos.CategoryResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/docs.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/docs.ErrorResponse'
+        "403":
+          description: Accès refusé - Admin requis
+          schema:
+            $ref: '#/definitions/docs.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/docs.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/docs.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/docs.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Mettre à jour une catégorie
+      tags:
+      - Categories
+  /admin/orders:
+    get:
+      consumes:
+      - application/json
+      description: Récupère toutes les commandes de tous les utilisateurs (admin uniquement)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dtos.OrderResponse'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/docs.ErrorResponse'
+        "403":
+          description: Accès refusé - Admin requis
+          schema:
+            $ref: '#/definitions/docs.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/docs.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Liste toutes les commandes
+      tags:
+      - Orders
+  /admin/orders/{id}/status:
+    put:
+      consumes:
+      - application/json
+      description: Met à jour le statut d'une commande (PENDING, SHIPPED, DELIVERED,
+        CANCELLED) - admin uniquement
+      parameters:
+      - description: ID de la commande
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Nouveau statut
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dtos.UpdateOrderStatusRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dtos.OrderResponse'
+        "400":
+          description: Statut invalide
+          schema:
+            $ref: '#/definitions/docs.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/docs.ErrorResponse'
+        "403":
+          description: Accès refusé - Admin requis
+          schema:
+            $ref: '#/definitions/docs.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/docs.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/docs.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Mettre à jour le statut d'une commande
+      tags:
+      - Orders
+  /admin/products:
+    post:
+      consumes:
+      - application/json
+      description: Crée un nouveau produit (admin uniquement)
+      parameters:
+      - description: Informations du produit
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dtos.ProductRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dtos.ProductResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/docs.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/docs.ErrorResponse'
+        "403":
+          description: Accès refusé - Admin requis
+          schema:
+            $ref: '#/definitions/docs.ErrorResponse'
+        "409":
+          description: Produit avec ce nom existe déjà
+          schema:
+            $ref: '#/definitions/docs.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/docs.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Créer un produit
+      tags:
+      - Products
+  /admin/products/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Supprime un produit (admin uniquement)
+      parameters:
+      - description: ID du produit
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/docs.ErrorResponse'
+        "403":
+          description: Accès refusé - Admin requis
+          schema:
+            $ref: '#/definitions/docs.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/docs.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/docs.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Supprimer un produit
+      tags:
+      - Products
+    put:
+      consumes:
+      - application/json
+      description: Met à jour un produit existant (admin uniquement)
+      parameters:
+      - description: ID du produit
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Nouvelles informations du produit
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dtos.ProductRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dtos.ProductResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/docs.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/docs.ErrorResponse'
+        "403":
+          description: Accès refusé - Admin requis
+          schema:
+            $ref: '#/definitions/docs.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/docs.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/docs.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/docs.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Mettre à jour un produit
+      tags:
+      - Products
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Authentifie un utilisateur et retourne un token JWT
+      parameters:
+      - description: Identifiants de connexion
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dtos.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dtos.LoginResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/docs.ErrorResponse'
+        "401":
+          description: Email ou mot de passe incorrect
+          schema:
+            $ref: '#/definitions/docs.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/docs.ErrorResponse'
+      summary: Connexion utilisateur
+      tags:
+      - Authentication
+  /auth/me:
+    get:
+      consumes:
+      - application/json
+      description: Récupère les informations de l'utilisateur connecté via le token
+        JWT
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dtos.UserResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/docs.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/docs.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Informations utilisateur actuel
+      tags:
+      - Authentication
+  /auth/register:
+    post:
+      consumes:
+      - application/json
+      description: Crée un nouveau compte utilisateur et retourne un token JWT
+      parameters:
+      - description: Informations d'inscription
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dtos.UserRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dtos.LoginResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/docs.ErrorResponse'
+        "409":
+          description: Email déjà utilisé
+          schema:
+            $ref: '#/definitions/docs.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/docs.ErrorResponse'
+      summary: Inscription d'un nouvel utilisateur
+      tags:
+      - Authentication
+  /orders:
+    get:
+      consumes:
+      - application/json
+      description: Récupère toutes les commandes de l'utilisateur connecté
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dtos.OrderResponse'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/docs.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/docs.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Liste les commandes de l'utilisateur
+      tags:
+      - Orders
+    post:
+      consumes:
+      - application/json
+      description: Crée une nouvelle commande avec les produits sélectionnés. Le stock
+        est automatiquement déduit.
+      parameters:
+      - description: Items de la commande
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dtos.CreateOrderRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dtos.OrderResponse'
+        "400":
+          description: Stock insuffisant ou produit non trouvé
+          schema:
+            $ref: '#/definitions/docs.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/docs.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/docs.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Créer une commande
+      tags:
+      - Orders
+  /orders/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Récupère les détails d'une commande. L'utilisateur peut voir ses
+        propres commandes, l'admin peut voir toutes les commandes.
+      parameters:
+      - description: ID de la commande
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dtos.OrderResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/docs.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/docs.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/docs.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Détails d'une commande
+      tags:
+      - Orders
+  /products:
+    get:
+      consumes:
+      - application/json
+      description: Récupère la liste de tous les produits disponibles avec leurs catégories
+        (authentification requise)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dtos.ProductResponse'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/docs.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/docs.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Liste tous les produits
+      tags:
+      - Products
+  /products/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Récupère les détails d'un produit par son ID (authentification
+        requise)
+      parameters:
+      - description: ID du produit
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dtos.ProductResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/docs.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/docs.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/docs.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/docs.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Détails d'un produit
+      tags:
+      - Products
+  /user/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Supprime un utilisateur par son ID
+      parameters:
+      - description: ID de l'utilisateur
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/docs.ErrorResponse'
+      summary: Supprimer un utilisateur
+      tags:
+      - Users
+    get:
+      consumes:
+      - application/json
+      description: Récupère les informations d'un utilisateur par son ID
+      parameters:
+      - description: ID de l'utilisateur
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dtos.UserResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/docs.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/docs.ErrorResponse'
+      summary: Récupérer un utilisateur
+      tags:
+      - Users
+    put:
+      consumes:
+      - application/json
+      description: Met à jour les informations d'un utilisateur
+      parameters:
+      - description: ID de l'utilisateur
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Nouvelles informations
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dtos.UserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dtos.UserResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/docs.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/docs.ErrorResponse'
+      summary: Mettre à jour un utilisateur
+      tags:
+      - Users
+  /users:
+    get:
+      consumes:
+      - application/json
+      description: Récupère la liste de tous les utilisateurs
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dtos.UserResponse'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/docs.ErrorResponse'
+      summary: Liste tous les utilisateurs
+      tags:
+      - Users
+    post:
+      consumes:
+      - application/json
+      description: Crée un nouvel utilisateur (sans authentification requise)
+      parameters:
+      - description: Informations utilisateur
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dtos.UserRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dtos.UserResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/docs.ErrorResponse'
+        "409":
+          description: Email déjà utilisé
+          schema:
+            $ref: '#/definitions/docs.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/docs.ErrorResponse'
+      summary: Créer un utilisateur
+      tags:
+      - Users
+securityDefinitions:
+  BearerAuth:
+    description: 'Type "Bearer" suivi d''un espace et du token JWT. Exemple: "Bearer
+      eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."'
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

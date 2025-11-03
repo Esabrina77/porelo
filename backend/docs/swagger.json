@@ -1,0 +1,1719 @@
+﻿{
+    "swagger":  "2.0",
+    "info":  {
+                 "description":  "API REST complète pour une boutique de produits de soins (skincare shop) avec authentification JWT et gestion des rôles.\nCette API permet de gérer les produits, catégories, commandes et utilisateurs.\n\n## Authentification\nLa plupart des endpoints nécessitent une authentification JWT. Pour tester les endpoints protégés :\n\n**Étape 1 : Obtenir un token**\n1. Utilisez `/auth/register` pour créer un compte OU `/auth/login` pour vous connecter\n2. Copiez le token JWT retourné dans la réponse (champ \"token\")\n\n**Étape 2 : Autoriser les requêtes dans Swagger UI**\n1. Cliquez sur le bouton **\"Authorize\"** (icône de cadenas) en haut à droite de cette page\n2. Dans le champ \"Value\", entrez : `Bearer \u003cvotre-token\u003e` (remplacez `\u003cvotre-token\u003e` par le token copié)\n3. Cliquez sur **\"Authorize\"** puis **\"Close\"**\n\n**Étape 3 : Tester les endpoints**\nTous les endpoints protégés sont maintenant accessibles. Vous pouvez cliquer sur \"Try it out\" et tester chaque endpoint.\n\n## Rôles\n- **USER** : Peut voir les produits, créer des commandes, voir ses propres commandes\n- **ADMIN** : Accès complet à toutes les ressources\n\n---\n\n## 🔐 Compte de test Admin\n\n**Email:** `momo@ynov.com`\n**Password:** `Password2025`\n\nUtilisez ce compte pour tester toutes les fonctionnalités admin dans l\u0027API.",
+                 "title":  "PORELO Skincare Shop API",
+                 "contact":  {
+
+                             },
+                 "version":  "1.0"
+             },
+    "host":  "localhost:8080",
+    "basePath":  "/",
+    "paths":  {
+                  "/auth/login":  {
+                                      "post":  {
+                                                   "description":  "Authentifie un utilisateur et retourne un token JWT",
+                                                   "consumes":  [
+                                                                    "application/json"
+                                                                ],
+                                                   "produces":  [
+                                                                    "application/json"
+                                                                ],
+                                                   "tags":  [
+                                                                "Authentication"
+                                                            ],
+                                                   "summary":  "Connexion utilisateur",
+                                                   "parameters":  [
+                                                                      {
+                                                                          "description":  "Identifiants de connexion",
+                                                                          "name":  "request",
+                                                                          "in":  "body",
+                                                                          "required":  true,
+                                                                          "schema":  {
+                                                                                         "$ref":  "#/definitions/dtos.LoginRequest"
+                                                                                     }
+                                                                      }
+                                                                  ],
+                                                   "responses":  {
+                                                                     "200":  {
+                                                                                 "description":  "OK",
+                                                                                 "schema":  {
+                                                                                                "$ref":  "#/definitions/dtos.LoginResponse"
+                                                                                            }
+                                                                             },
+                                                                     "400":  {
+                                                                                 "description":  "Bad Request",
+                                                                                 "schema":  {
+                                                                                                "$ref":  "#/definitions/docs.ErrorResponse"
+                                                                                            }
+                                                                             },
+                                                                     "401":  {
+                                                                                 "description":  "Email ou mot de passe incorrect",
+                                                                                 "schema":  {
+                                                                                                "$ref":  "#/definitions/docs.ErrorResponse"
+                                                                                            }
+                                                                             },
+                                                                     "500":  {
+                                                                                 "description":  "Internal Server Error",
+                                                                                 "schema":  {
+                                                                                                "$ref":  "#/definitions/docs.ErrorResponse"
+                                                                                            }
+                                                                             }
+                                                                 }
+                                               }
+                                  },
+                  "/auth/me":  {
+                                   "get":  {
+                                               "security":  [
+                                                                {
+                                                                    "BearerAuth":  [
+
+                                                                                   ]
+                                                                }
+                                                            ],
+                                               "description":  "Récupère les informations de l\u0027utilisateur connecté via le token JWT",
+                                               "consumes":  [
+                                                                "application/json"
+                                                            ],
+                                               "produces":  [
+                                                                "application/json"
+                                                            ],
+                                               "tags":  [
+                                                            "Authentication"
+                                                        ],
+                                               "summary":  "Informations utilisateur actuel",
+                                               "responses":  {
+                                                                 "200":  {
+                                                                             "description":  "OK",
+                                                                             "schema":  {
+                                                                                            "$ref":  "#/definitions/dtos.UserResponse"
+                                                                                        }
+                                                                         },
+                                                                 "401":  {
+                                                                             "description":  "Unauthorized",
+                                                                             "schema":  {
+                                                                                            "$ref":  "#/definitions/docs.ErrorResponse"
+                                                                                        }
+                                                                         },
+                                                                 "404":  {
+                                                                             "description":  "Not Found",
+                                                                             "schema":  {
+                                                                                            "$ref":  "#/definitions/docs.ErrorResponse"
+                                                                                        }
+                                                                         }
+                                                             }
+                                           }
+                               },
+                  "/auth/register":  {
+                                         "post":  {
+                                                      "description":  "Crée un nouveau compte utilisateur et retourne un token JWT",
+                                                      "consumes":  [
+                                                                       "application/json"
+                                                                   ],
+                                                      "produces":  [
+                                                                       "application/json"
+                                                                   ],
+                                                      "tags":  [
+                                                                   "Authentication"
+                                                               ],
+                                                      "summary":  "Inscription d\u0027un nouvel utilisateur",
+                                                      "parameters":  [
+                                                                         {
+                                                                             "description":  "Informations d\u0027inscription",
+                                                                             "name":  "request",
+                                                                             "in":  "body",
+                                                                             "required":  true,
+                                                                             "schema":  {
+                                                                                            "$ref":  "#/definitions/dtos.UserRequest"
+                                                                                        }
+                                                                         }
+                                                                     ],
+                                                      "responses":  {
+                                                                        "201":  {
+                                                                                    "description":  "Created",
+                                                                                    "schema":  {
+                                                                                                   "$ref":  "#/definitions/dtos.LoginResponse"
+                                                                                               }
+                                                                                },
+                                                                        "400":  {
+                                                                                    "description":  "Bad Request",
+                                                                                    "schema":  {
+                                                                                                   "$ref":  "#/definitions/docs.ErrorResponse"
+                                                                                               }
+                                                                                },
+                                                                        "409":  {
+                                                                                    "description":  "Email déjà utilisé",
+                                                                                    "schema":  {
+                                                                                                   "$ref":  "#/definitions/docs.ErrorResponse"
+                                                                                               }
+                                                                                },
+                                                                        "500":  {
+                                                                                    "description":  "Internal Server Error",
+                                                                                    "schema":  {
+                                                                                                   "$ref":  "#/definitions/docs.ErrorResponse"
+                                                                                               }
+                                                                                }
+                                                                    }
+                                                  }
+                                     },
+                  "/admin/categories":  {
+                                            "get":  {
+                                                        "security":  [
+                                                                         {
+                                                                             "BearerAuth":  [
+
+                                                                                            ]
+                                                                         }
+                                                                     ],
+                                                        "description":  "Récupère la liste de toutes les catégories (admin uniquement)",
+                                                        "consumes":  [
+                                                                         "application/json"
+                                                                     ],
+                                                        "produces":  [
+                                                                         "application/json"
+                                                                     ],
+                                                        "tags":  [
+                                                                     "Categories"
+                                                                 ],
+                                                        "summary":  "Liste toutes les catégories",
+                                                        "responses":  {
+                                                                          "200":  {
+                                                                                      "description":  "OK",
+                                                                                      "schema":  {
+                                                                                                     "type":  "array",
+                                                                                                     "items":  {
+                                                                                                                   "$ref":  "#/definitions/dtos.CategoryResponse"
+                                                                                                               }
+                                                                                                 }
+                                                                                  },
+                                                                          "401":  {
+                                                                                      "description":  "Unauthorized",
+                                                                                      "schema":  {
+                                                                                                     "$ref":  "#/definitions/docs.ErrorResponse"
+                                                                                                 }
+                                                                                  },
+                                                                          "403":  {
+                                                                                      "description":  "Accès refusé - Admin requis",
+                                                                                      "schema":  {
+                                                                                                     "$ref":  "#/definitions/docs.ErrorResponse"
+                                                                                                 }
+                                                                                  },
+                                                                          "500":  {
+                                                                                      "description":  "Internal Server Error",
+                                                                                      "schema":  {
+                                                                                                     "$ref":  "#/definitions/docs.ErrorResponse"
+                                                                                                 }
+                                                                                  }
+                                                                      }
+                                                    },
+                                            "post":  {
+                                                         "security":  [
+                                                                          {
+                                                                              "BearerAuth":  [
+
+                                                                                             ]
+                                                                          }
+                                                                      ],
+                                                         "description":  "Crée une nouvelle catégorie (admin uniquement)",
+                                                         "consumes":  [
+                                                                          "application/json"
+                                                                      ],
+                                                         "produces":  [
+                                                                          "application/json"
+                                                                      ],
+                                                         "tags":  [
+                                                                      "Categories"
+                                                                  ],
+                                                         "summary":  "Créer une catégorie",
+                                                         "parameters":  [
+                                                                            {
+                                                                                "description":  "Informations de la catégorie",
+                                                                                "name":  "request",
+                                                                                "in":  "body",
+                                                                                "required":  true,
+                                                                                "schema":  {
+                                                                                               "$ref":  "#/definitions/dtos.CategoryRequest"
+                                                                                           }
+                                                                            }
+                                                                        ],
+                                                         "responses":  {
+                                                                           "201":  {
+                                                                                       "description":  "Created",
+                                                                                       "schema":  {
+                                                                                                      "$ref":  "#/definitions/dtos.CategoryResponse"
+                                                                                                  }
+                                                                                   },
+                                                                           "400":  {
+                                                                                       "description":  "Bad Request",
+                                                                                       "schema":  {
+                                                                                                      "$ref":  "#/definitions/docs.ErrorResponse"
+                                                                                                  }
+                                                                                   },
+                                                                           "401":  {
+                                                                                       "description":  "Unauthorized",
+                                                                                       "schema":  {
+                                                                                                      "$ref":  "#/definitions/docs.ErrorResponse"
+                                                                                                  }
+                                                                                   },
+                                                                           "403":  {
+                                                                                       "description":  "Accès refusé - Admin requis",
+                                                                                       "schema":  {
+                                                                                                      "$ref":  "#/definitions/docs.ErrorResponse"
+                                                                                                  }
+                                                                                   },
+                                                                           "409":  {
+                                                                                       "description":  "Catégorie avec ce nom existe déjà",
+                                                                                       "schema":  {
+                                                                                                      "$ref":  "#/definitions/docs.ErrorResponse"
+                                                                                                  }
+                                                                                   },
+                                                                           "500":  {
+                                                                                       "description":  "Internal Server Error",
+                                                                                       "schema":  {
+                                                                                                      "$ref":  "#/definitions/docs.ErrorResponse"
+                                                                                                  }
+                                                                                   }
+                                                                       }
+                                                     }
+                                        },
+                  "/admin/categories/{id}":  {
+                                                 "get":  {
+                                                             "security":  [
+                                                                              {
+                                                                                  "BearerAuth":  [
+
+                                                                                                 ]
+                                                                              }
+                                                                          ],
+                                                             "description":  "Récupère les détails d\u0027une catégorie par son ID (admin uniquement)",
+                                                             "consumes":  [
+                                                                              "application/json"
+                                                                          ],
+                                                             "produces":  [
+                                                                              "application/json"
+                                                                          ],
+                                                             "tags":  [
+                                                                          "Categories"
+                                                                      ],
+                                                             "summary":  "Détails d\u0027une catégorie",
+                                                             "parameters":  [
+                                                                                {
+                                                                                    "type":  "string",
+                                                                                    "description":  "ID de la catégorie",
+                                                                                    "name":  "id",
+                                                                                    "in":  "path",
+                                                                                    "required":  true
+                                                                                }
+                                                                            ],
+                                                             "responses":  {
+                                                                               "200":  {
+                                                                                           "description":  "OK",
+                                                                                           "schema":  {
+                                                                                                          "$ref":  "#/definitions/dtos.CategoryResponse"
+                                                                                                      }
+                                                                                       },
+                                                                               "401":  {
+                                                                                           "description":  "Unauthorized",
+                                                                                           "schema":  {
+                                                                                                          "$ref":  "#/definitions/docs.ErrorResponse"
+                                                                                                      }
+                                                                                       },
+                                                                               "403":  {
+                                                                                           "description":  "Accès refusé - Admin requis",
+                                                                                           "schema":  {
+                                                                                                          "$ref":  "#/definitions/docs.ErrorResponse"
+                                                                                                      }
+                                                                                       },
+                                                                               "404":  {
+                                                                                           "description":  "Not Found",
+                                                                                           "schema":  {
+                                                                                                          "$ref":  "#/definitions/docs.ErrorResponse"
+                                                                                                      }
+                                                                                       },
+                                                                               "500":  {
+                                                                                           "description":  "Internal Server Error",
+                                                                                           "schema":  {
+                                                                                                          "$ref":  "#/definitions/docs.ErrorResponse"
+                                                                                                      }
+                                                                                       }
+                                                                           }
+                                                         },
+                                                 "put":  {
+                                                             "security":  [
+                                                                              {
+                                                                                  "BearerAuth":  [
+
+                                                                                                 ]
+                                                                              }
+                                                                          ],
+                                                             "description":  "Met à jour une catégorie existante (admin uniquement)",
+                                                             "consumes":  [
+                                                                              "application/json"
+                                                                          ],
+                                                             "produces":  [
+                                                                              "application/json"
+                                                                          ],
+                                                             "tags":  [
+                                                                          "Categories"
+                                                                      ],
+                                                             "summary":  "Mettre à jour une catégorie",
+                                                             "parameters":  [
+                                                                                {
+                                                                                    "type":  "string",
+                                                                                    "description":  "ID de la catégorie",
+                                                                                    "name":  "id",
+                                                                                    "in":  "path",
+                                                                                    "required":  true
+                                                                                },
+                                                                                {
+                                                                                    "description":  "Nouvelles informations de la catégorie",
+                                                                                    "name":  "request",
+                                                                                    "in":  "body",
+                                                                                    "required":  true,
+                                                                                    "schema":  {
+                                                                                                   "$ref":  "#/definitions/dtos.CategoryRequest"
+                                                                                               }
+                                                                                }
+                                                                            ],
+                                                             "responses":  {
+                                                                               "200":  {
+                                                                                           "description":  "OK",
+                                                                                           "schema":  {
+                                                                                                          "$ref":  "#/definitions/dtos.CategoryResponse"
+                                                                                                      }
+                                                                                       },
+                                                                               "400":  {
+                                                                                           "description":  "Bad Request",
+                                                                                           "schema":  {
+                                                                                                          "$ref":  "#/definitions/docs.ErrorResponse"
+                                                                                                      }
+                                                                                       },
+                                                                               "401":  {
+                                                                                           "description":  "Unauthorized",
+                                                                                           "schema":  {
+                                                                                                          "$ref":  "#/definitions/docs.ErrorResponse"
+                                                                                                      }
+                                                                                       },
+                                                                               "403":  {
+                                                                                           "description":  "Accès refusé - Admin requis",
+                                                                                           "schema":  {
+                                                                                                          "$ref":  "#/definitions/docs.ErrorResponse"
+                                                                                                      }
+                                                                                       },
+                                                                               "404":  {
+                                                                                           "description":  "Not Found",
+                                                                                           "schema":  {
+                                                                                                          "$ref":  "#/definitions/docs.ErrorResponse"
+                                                                                                      }
+                                                                                       },
+                                                                               "409":  {
+                                                                                           "description":  "Conflict",
+                                                                                           "schema":  {
+                                                                                                          "$ref":  "#/definitions/docs.ErrorResponse"
+                                                                                                      }
+                                                                                       },
+                                                                               "500":  {
+                                                                                           "description":  "Internal Server Error",
+                                                                                           "schema":  {
+                                                                                                          "$ref":  "#/definitions/docs.ErrorResponse"
+                                                                                                      }
+                                                                                       }
+                                                                           }
+                                                         },
+                                                 "delete":  {
+                                                                "security":  [
+                                                                                 {
+                                                                                     "BearerAuth":  [
+
+                                                                                                    ]
+                                                                                 }
+                                                                             ],
+                                                                "description":  "Supprime une catégorie (admin uniquement)",
+                                                                "consumes":  [
+                                                                                 "application/json"
+                                                                             ],
+                                                                "produces":  [
+                                                                                 "application/json"
+                                                                             ],
+                                                                "tags":  [
+                                                                             "Categories"
+                                                                         ],
+                                                                "summary":  "Supprimer une catégorie",
+                                                                "parameters":  [
+                                                                                   {
+                                                                                       "type":  "string",
+                                                                                       "description":  "ID de la catégorie",
+                                                                                       "name":  "id",
+                                                                                       "in":  "path",
+                                                                                       "required":  true
+                                                                                   }
+                                                                               ],
+                                                                "responses":  {
+                                                                                  "204":  {
+                                                                                              "description":  "No Content"
+                                                                                          },
+                                                                                  "401":  {
+                                                                                              "description":  "Unauthorized",
+                                                                                              "schema":  {
+                                                                                                             "$ref":  "#/definitions/docs.ErrorResponse"
+                                                                                                         }
+                                                                                          },
+                                                                                  "403":  {
+                                                                                              "description":  "Accès refusé - Admin requis",
+                                                                                              "schema":  {
+                                                                                                             "$ref":  "#/definitions/docs.ErrorResponse"
+                                                                                                         }
+                                                                                          },
+                                                                                  "404":  {
+                                                                                              "description":  "Not Found",
+                                                                                              "schema":  {
+                                                                                                             "$ref":  "#/definitions/docs.ErrorResponse"
+                                                                                                         }
+                                                                                          },
+                                                                                  "500":  {
+                                                                                              "description":  "Internal Server Error",
+                                                                                              "schema":  {
+                                                                                                             "$ref":  "#/definitions/docs.ErrorResponse"
+                                                                                                         }
+                                                                                          }
+                                                                              }
+                                                            }
+                                             },
+                  "/admin/orders":  {
+                                        "get":  {
+                                                    "security":  [
+                                                                     {
+                                                                         "BearerAuth":  [
+
+                                                                                        ]
+                                                                     }
+                                                                 ],
+                                                    "description":  "Récupère toutes les commandes de tous les utilisateurs (admin uniquement)",
+                                                    "consumes":  [
+                                                                     "application/json"
+                                                                 ],
+                                                    "produces":  [
+                                                                     "application/json"
+                                                                 ],
+                                                    "tags":  [
+                                                                 "Orders"
+                                                             ],
+                                                    "summary":  "Liste toutes les commandes",
+                                                    "responses":  {
+                                                                      "200":  {
+                                                                                  "description":  "OK",
+                                                                                  "schema":  {
+                                                                                                 "type":  "array",
+                                                                                                 "items":  {
+                                                                                                               "$ref":  "#/definitions/dtos.OrderResponse"
+                                                                                                           }
+                                                                                             }
+                                                                              },
+                                                                      "401":  {
+                                                                                  "description":  "Unauthorized",
+                                                                                  "schema":  {
+                                                                                                 "$ref":  "#/definitions/docs.ErrorResponse"
+                                                                                             }
+                                                                              },
+                                                                      "403":  {
+                                                                                  "description":  "Accès refusé - Admin requis",
+                                                                                  "schema":  {
+                                                                                                 "$ref":  "#/definitions/docs.ErrorResponse"
+                                                                                             }
+                                                                              },
+                                                                      "500":  {
+                                                                                  "description":  "Internal Server Error",
+                                                                                  "schema":  {
+                                                                                                 "$ref":  "#/definitions/docs.ErrorResponse"
+                                                                                             }
+                                                                              }
+                                                                  }
+                                                }
+                                    },
+                  "/admin/orders/{id}/status":  {
+                                                    "put":  {
+                                                                "security":  [
+                                                                                 {
+                                                                                     "BearerAuth":  [
+
+                                                                                                    ]
+                                                                                 }
+                                                                             ],
+                                                                "description":  "Met à jour le statut d\u0027une commande (PENDING, SHIPPED, DELIVERED, CANCELLED) - admin uniquement",
+                                                                "consumes":  [
+                                                                                 "application/json"
+                                                                             ],
+                                                                "produces":  [
+                                                                                 "application/json"
+                                                                             ],
+                                                                "tags":  [
+                                                                             "Orders"
+                                                                         ],
+                                                                "summary":  "Mettre à jour le statut d\u0027une commande",
+                                                                "parameters":  [
+                                                                                   {
+                                                                                       "type":  "string",
+                                                                                       "description":  "ID de la commande",
+                                                                                       "name":  "id",
+                                                                                       "in":  "path",
+                                                                                       "required":  true
+                                                                                   },
+                                                                                   {
+                                                                                       "description":  "Nouveau statut",
+                                                                                       "name":  "request",
+                                                                                       "in":  "body",
+                                                                                       "required":  true,
+                                                                                       "schema":  {
+                                                                                                      "$ref":  "#/definitions/dtos.UpdateOrderStatusRequest"
+                                                                                                  }
+                                                                                   }
+                                                                               ],
+                                                                "responses":  {
+                                                                                  "200":  {
+                                                                                              "description":  "OK",
+                                                                                              "schema":  {
+                                                                                                             "$ref":  "#/definitions/dtos.OrderResponse"
+                                                                                                         }
+                                                                                          },
+                                                                                  "400":  {
+                                                                                              "description":  "Statut invalide",
+                                                                                              "schema":  {
+                                                                                                             "$ref":  "#/definitions/docs.ErrorResponse"
+                                                                                                         }
+                                                                                          },
+                                                                                  "401":  {
+                                                                                              "description":  "Unauthorized",
+                                                                                              "schema":  {
+                                                                                                             "$ref":  "#/definitions/docs.ErrorResponse"
+                                                                                                         }
+                                                                                          },
+                                                                                  "403":  {
+                                                                                              "description":  "Accès refusé - Admin requis",
+                                                                                              "schema":  {
+                                                                                                             "$ref":  "#/definitions/docs.ErrorResponse"
+                                                                                                         }
+                                                                                          },
+                                                                                  "404":  {
+                                                                                              "description":  "Not Found",
+                                                                                              "schema":  {
+                                                                                                             "$ref":  "#/definitions/docs.ErrorResponse"
+                                                                                                         }
+                                                                                          },
+                                                                                  "500":  {
+                                                                                              "description":  "Internal Server Error",
+                                                                                              "schema":  {
+                                                                                                             "$ref":  "#/definitions/docs.ErrorResponse"
+                                                                                                         }
+                                                                                          }
+                                                                              }
+                                                            }
+                                                },
+                  "/admin/products":  {
+                                          "post":  {
+                                                       "security":  [
+                                                                        {
+                                                                            "BearerAuth":  [
+
+                                                                                           ]
+                                                                        }
+                                                                    ],
+                                                       "description":  "Crée un nouveau produit (admin uniquement)",
+                                                       "consumes":  [
+                                                                        "application/json"
+                                                                    ],
+                                                       "produces":  [
+                                                                        "application/json"
+                                                                    ],
+                                                       "tags":  [
+                                                                    "Products"
+                                                                ],
+                                                       "summary":  "Créer un produit",
+                                                       "parameters":  [
+                                                                          {
+                                                                              "description":  "Informations du produit",
+                                                                              "name":  "request",
+                                                                              "in":  "body",
+                                                                              "required":  true,
+                                                                              "schema":  {
+                                                                                             "$ref":  "#/definitions/dtos.ProductRequest"
+                                                                                         }
+                                                                          }
+                                                                      ],
+                                                       "responses":  {
+                                                                         "201":  {
+                                                                                     "description":  "Created",
+                                                                                     "schema":  {
+                                                                                                    "$ref":  "#/definitions/dtos.ProductResponse"
+                                                                                                }
+                                                                                 },
+                                                                         "400":  {
+                                                                                     "description":  "Bad Request",
+                                                                                     "schema":  {
+                                                                                                    "$ref":  "#/definitions/docs.ErrorResponse"
+                                                                                                }
+                                                                                 },
+                                                                         "401":  {
+                                                                                     "description":  "Unauthorized",
+                                                                                     "schema":  {
+                                                                                                    "$ref":  "#/definitions/docs.ErrorResponse"
+                                                                                                }
+                                                                                 },
+                                                                         "403":  {
+                                                                                     "description":  "Accès refusé - Admin requis",
+                                                                                     "schema":  {
+                                                                                                    "$ref":  "#/definitions/docs.ErrorResponse"
+                                                                                                }
+                                                                                 },
+                                                                         "409":  {
+                                                                                     "description":  "Produit avec ce nom existe déjà",
+                                                                                     "schema":  {
+                                                                                                    "$ref":  "#/definitions/docs.ErrorResponse"
+                                                                                                }
+                                                                                 },
+                                                                         "500":  {
+                                                                                     "description":  "Internal Server Error",
+                                                                                     "schema":  {
+                                                                                                    "$ref":  "#/definitions/docs.ErrorResponse"
+                                                                                                }
+                                                                                 }
+                                                                     }
+                                                   }
+                                      },
+                  "/admin/products/{id}":  {
+                                               "put":  {
+                                                           "security":  [
+                                                                            {
+                                                                                "BearerAuth":  [
+
+                                                                                               ]
+                                                                            }
+                                                                        ],
+                                                           "description":  "Met à jour un produit existant (admin uniquement)",
+                                                           "consumes":  [
+                                                                            "application/json"
+                                                                        ],
+                                                           "produces":  [
+                                                                            "application/json"
+                                                                        ],
+                                                           "tags":  [
+                                                                        "Products"
+                                                                    ],
+                                                           "summary":  "Mettre à jour un produit",
+                                                           "parameters":  [
+                                                                              {
+                                                                                  "type":  "string",
+                                                                                  "description":  "ID du produit",
+                                                                                  "name":  "id",
+                                                                                  "in":  "path",
+                                                                                  "required":  true
+                                                                              },
+                                                                              {
+                                                                                  "description":  "Nouvelles informations du produit",
+                                                                                  "name":  "request",
+                                                                                  "in":  "body",
+                                                                                  "required":  true,
+                                                                                  "schema":  {
+                                                                                                 "$ref":  "#/definitions/dtos.ProductRequest"
+                                                                                             }
+                                                                              }
+                                                                          ],
+                                                           "responses":  {
+                                                                             "200":  {
+                                                                                         "description":  "OK",
+                                                                                         "schema":  {
+                                                                                                        "$ref":  "#/definitions/dtos.ProductResponse"
+                                                                                                    }
+                                                                                     },
+                                                                             "400":  {
+                                                                                         "description":  "Bad Request",
+                                                                                         "schema":  {
+                                                                                                        "$ref":  "#/definitions/docs.ErrorResponse"
+                                                                                                    }
+                                                                                     },
+                                                                             "401":  {
+                                                                                         "description":  "Unauthorized",
+                                                                                         "schema":  {
+                                                                                                        "$ref":  "#/definitions/docs.ErrorResponse"
+                                                                                                    }
+                                                                                     },
+                                                                             "403":  {
+                                                                                         "description":  "Accès refusé - Admin requis",
+                                                                                         "schema":  {
+                                                                                                        "$ref":  "#/definitions/docs.ErrorResponse"
+                                                                                                    }
+                                                                                     },
+                                                                             "404":  {
+                                                                                         "description":  "Not Found",
+                                                                                         "schema":  {
+                                                                                                        "$ref":  "#/definitions/docs.ErrorResponse"
+                                                                                                    }
+                                                                                     },
+                                                                             "409":  {
+                                                                                         "description":  "Conflict",
+                                                                                         "schema":  {
+                                                                                                        "$ref":  "#/definitions/docs.ErrorResponse"
+                                                                                                    }
+                                                                                     },
+                                                                             "500":  {
+                                                                                         "description":  "Internal Server Error",
+                                                                                         "schema":  {
+                                                                                                        "$ref":  "#/definitions/docs.ErrorResponse"
+                                                                                                    }
+                                                                                     }
+                                                                         }
+                                                       },
+                                               "delete":  {
+                                                              "security":  [
+                                                                               {
+                                                                                   "BearerAuth":  [
+
+                                                                                                  ]
+                                                                               }
+                                                                           ],
+                                                              "description":  "Supprime un produit (admin uniquement)",
+                                                              "consumes":  [
+                                                                               "application/json"
+                                                                           ],
+                                                              "produces":  [
+                                                                               "application/json"
+                                                                           ],
+                                                              "tags":  [
+                                                                           "Products"
+                                                                       ],
+                                                              "summary":  "Supprimer un produit",
+                                                              "parameters":  [
+                                                                                 {
+                                                                                     "type":  "string",
+                                                                                     "description":  "ID du produit",
+                                                                                     "name":  "id",
+                                                                                     "in":  "path",
+                                                                                     "required":  true
+                                                                                 }
+                                                                             ],
+                                                              "responses":  {
+                                                                                "204":  {
+                                                                                            "description":  "No Content"
+                                                                                        },
+                                                                                "401":  {
+                                                                                            "description":  "Unauthorized",
+                                                                                            "schema":  {
+                                                                                                           "$ref":  "#/definitions/docs.ErrorResponse"
+                                                                                                       }
+                                                                                        },
+                                                                                "403":  {
+                                                                                            "description":  "Accès refusé - Admin requis",
+                                                                                            "schema":  {
+                                                                                                           "$ref":  "#/definitions/docs.ErrorResponse"
+                                                                                                       }
+                                                                                        },
+                                                                                "404":  {
+                                                                                            "description":  "Not Found",
+                                                                                            "schema":  {
+                                                                                                           "$ref":  "#/definitions/docs.ErrorResponse"
+                                                                                                       }
+                                                                                        },
+                                                                                "500":  {
+                                                                                            "description":  "Internal Server Error",
+                                                                                            "schema":  {
+                                                                                                           "$ref":  "#/definitions/docs.ErrorResponse"
+                                                                                                       }
+                                                                                        }
+                                                                            }
+                                                          }
+                                           },
+                  "/orders":  {
+                                  "get":  {
+                                              "security":  [
+                                                               {
+                                                                   "BearerAuth":  [
+
+                                                                                  ]
+                                                               }
+                                                           ],
+                                              "description":  "Récupère toutes les commandes de l\u0027utilisateur connecté",
+                                              "consumes":  [
+                                                               "application/json"
+                                                           ],
+                                              "produces":  [
+                                                               "application/json"
+                                                           ],
+                                              "tags":  [
+                                                           "Orders"
+                                                       ],
+                                              "summary":  "Liste les commandes de l\u0027utilisateur",
+                                              "responses":  {
+                                                                "200":  {
+                                                                            "description":  "OK",
+                                                                            "schema":  {
+                                                                                           "type":  "array",
+                                                                                           "items":  {
+                                                                                                         "$ref":  "#/definitions/dtos.OrderResponse"
+                                                                                                     }
+                                                                                       }
+                                                                        },
+                                                                "401":  {
+                                                                            "description":  "Unauthorized",
+                                                                            "schema":  {
+                                                                                           "$ref":  "#/definitions/docs.ErrorResponse"
+                                                                                       }
+                                                                        },
+                                                                "500":  {
+                                                                            "description":  "Internal Server Error",
+                                                                            "schema":  {
+                                                                                           "$ref":  "#/definitions/docs.ErrorResponse"
+                                                                                       }
+                                                                        }
+                                                            }
+                                          },
+                                  "post":  {
+                                               "security":  [
+                                                                {
+                                                                    "BearerAuth":  [
+
+                                                                                   ]
+                                                                }
+                                                            ],
+                                               "description":  "Crée une nouvelle commande avec les produits sélectionnés. Le stock est automatiquement déduit.",
+                                               "consumes":  [
+                                                                "application/json"
+                                                            ],
+                                               "produces":  [
+                                                                "application/json"
+                                                            ],
+                                               "tags":  [
+                                                            "Orders"
+                                                        ],
+                                               "summary":  "Créer une commande",
+                                               "parameters":  [
+                                                                  {
+                                                                      "description":  "Items de la commande",
+                                                                      "name":  "request",
+                                                                      "in":  "body",
+                                                                      "required":  true,
+                                                                      "schema":  {
+                                                                                     "$ref":  "#/definitions/dtos.CreateOrderRequest"
+                                                                                 }
+                                                                  }
+                                                              ],
+                                               "responses":  {
+                                                                 "201":  {
+                                                                             "description":  "Created",
+                                                                             "schema":  {
+                                                                                            "$ref":  "#/definitions/dtos.OrderResponse"
+                                                                                        }
+                                                                         },
+                                                                 "400":  {
+                                                                             "description":  "Stock insuffisant ou produit non trouvé",
+                                                                             "schema":  {
+                                                                                            "$ref":  "#/definitions/docs.ErrorResponse"
+                                                                                        }
+                                                                         },
+                                                                 "401":  {
+                                                                             "description":  "Unauthorized",
+                                                                             "schema":  {
+                                                                                            "$ref":  "#/definitions/docs.ErrorResponse"
+                                                                                        }
+                                                                         },
+                                                                 "500":  {
+                                                                             "description":  "Internal Server Error",
+                                                                             "schema":  {
+                                                                                            "$ref":  "#/definitions/docs.ErrorResponse"
+                                                                                        }
+                                                                         }
+                                                             }
+                                           }
+                              },
+                  "/orders/{id}":  {
+                                       "get":  {
+                                                   "security":  [
+                                                                    {
+                                                                        "BearerAuth":  [
+
+                                                                                       ]
+                                                                    }
+                                                                ],
+                                                   "description":  "Récupère les détails d\u0027une commande. L\u0027utilisateur peut voir ses propres commandes, l\u0027admin peut voir toutes les commandes.",
+                                                   "consumes":  [
+                                                                    "application/json"
+                                                                ],
+                                                   "produces":  [
+                                                                    "application/json"
+                                                                ],
+                                                   "tags":  [
+                                                                "Orders"
+                                                            ],
+                                                   "summary":  "Détails d\u0027une commande",
+                                                   "parameters":  [
+                                                                      {
+                                                                          "type":  "string",
+                                                                          "description":  "ID de la commande",
+                                                                          "name":  "id",
+                                                                          "in":  "path",
+                                                                          "required":  true
+                                                                      }
+                                                                  ],
+                                                   "responses":  {
+                                                                     "200":  {
+                                                                                 "description":  "OK",
+                                                                                 "schema":  {
+                                                                                                "$ref":  "#/definitions/dtos.OrderResponse"
+                                                                                            }
+                                                                             },
+                                                                     "401":  {
+                                                                                 "description":  "Unauthorized",
+                                                                                 "schema":  {
+                                                                                                "$ref":  "#/definitions/docs.ErrorResponse"
+                                                                                            }
+                                                                             },
+                                                                     "404":  {
+                                                                                 "description":  "Not Found",
+                                                                                 "schema":  {
+                                                                                                "$ref":  "#/definitions/docs.ErrorResponse"
+                                                                                            }
+                                                                             },
+                                                                     "500":  {
+                                                                                 "description":  "Internal Server Error",
+                                                                                 "schema":  {
+                                                                                                "$ref":  "#/definitions/docs.ErrorResponse"
+                                                                                            }
+                                                                             }
+                                                                 }
+                                               }
+                                   },
+                  "/products":  {
+                                    "get":  {
+                                                "security":  [
+                                                                 {
+                                                                     "BearerAuth":  [
+
+                                                                                    ]
+                                                                 }
+                                                             ],
+                                                "description":  "Récupère la liste de tous les produits disponibles avec leurs catégories (authentification requise)",
+                                                "consumes":  [
+                                                                 "application/json"
+                                                             ],
+                                                "produces":  [
+                                                                 "application/json"
+                                                             ],
+                                                "tags":  [
+                                                             "Products"
+                                                         ],
+                                                "summary":  "Liste tous les produits",
+                                                "responses":  {
+                                                                  "200":  {
+                                                                              "description":  "OK",
+                                                                              "schema":  {
+                                                                                             "type":  "array",
+                                                                                             "items":  {
+                                                                                                           "$ref":  "#/definitions/dtos.ProductResponse"
+                                                                                                       }
+                                                                                         }
+                                                                          },
+                                                                  "401":  {
+                                                                              "description":  "Unauthorized",
+                                                                              "schema":  {
+                                                                                             "$ref":  "#/definitions/docs.ErrorResponse"
+                                                                                         }
+                                                                          },
+                                                                  "500":  {
+                                                                              "description":  "Internal Server Error",
+                                                                              "schema":  {
+                                                                                             "$ref":  "#/definitions/docs.ErrorResponse"
+                                                                                         }
+                                                                          }
+                                                              }
+                                            }
+                                },
+                  "/products/{id}":  {
+                                         "get":  {
+                                                     "security":  [
+                                                                      {
+                                                                          "BearerAuth":  [
+
+                                                                                         ]
+                                                                      }
+                                                                  ],
+                                                     "description":  "Récupère les détails d\u0027un produit par son ID (authentification requise)",
+                                                     "consumes":  [
+                                                                      "application/json"
+                                                                  ],
+                                                     "produces":  [
+                                                                      "application/json"
+                                                                  ],
+                                                     "tags":  [
+                                                                  "Products"
+                                                              ],
+                                                     "summary":  "Détails d\u0027un produit",
+                                                     "parameters":  [
+                                                                        {
+                                                                            "type":  "string",
+                                                                            "description":  "ID du produit",
+                                                                            "name":  "id",
+                                                                            "in":  "path",
+                                                                            "required":  true
+                                                                        }
+                                                                    ],
+                                                     "responses":  {
+                                                                       "200":  {
+                                                                                   "description":  "OK",
+                                                                                   "schema":  {
+                                                                                                  "$ref":  "#/definitions/dtos.ProductResponse"
+                                                                                              }
+                                                                               },
+                                                                       "400":  {
+                                                                                   "description":  "Bad Request",
+                                                                                   "schema":  {
+                                                                                                  "$ref":  "#/definitions/docs.ErrorResponse"
+                                                                                              }
+                                                                               },
+                                                                       "401":  {
+                                                                                   "description":  "Unauthorized",
+                                                                                   "schema":  {
+                                                                                                  "$ref":  "#/definitions/docs.ErrorResponse"
+                                                                                              }
+                                                                               },
+                                                                       "404":  {
+                                                                                   "description":  "Not Found",
+                                                                                   "schema":  {
+                                                                                                  "$ref":  "#/definitions/docs.ErrorResponse"
+                                                                                              }
+                                                                               },
+                                                                       "500":  {
+                                                                                   "description":  "Internal Server Error",
+                                                                                   "schema":  {
+                                                                                                  "$ref":  "#/definitions/docs.ErrorResponse"
+                                                                                              }
+                                                                               }
+                                                                   }
+                                                 }
+                                     },
+                  "/user/{id}":  {
+                                     "get":  {
+                                                 "description":  "Récupère les informations d\u0027un utilisateur par son ID",
+                                                 "consumes":  [
+                                                                  "application/json"
+                                                              ],
+                                                 "produces":  [
+                                                                  "application/json"
+                                                              ],
+                                                 "tags":  [
+                                                              "Users"
+                                                          ],
+                                                 "summary":  "Récupérer un utilisateur",
+                                                 "parameters":  [
+                                                                    {
+                                                                        "type":  "string",
+                                                                        "description":  "ID de l\u0027utilisateur",
+                                                                        "name":  "id",
+                                                                        "in":  "path",
+                                                                        "required":  true
+                                                                    }
+                                                                ],
+                                                 "responses":  {
+                                                                   "200":  {
+                                                                               "description":  "OK",
+                                                                               "schema":  {
+                                                                                              "$ref":  "#/definitions/dtos.UserResponse"
+                                                                                          }
+                                                                           },
+                                                                   "404":  {
+                                                                               "description":  "Not Found",
+                                                                               "schema":  {
+                                                                                              "$ref":  "#/definitions/docs.ErrorResponse"
+                                                                                          }
+                                                                           },
+                                                                   "500":  {
+                                                                               "description":  "Internal Server Error",
+                                                                               "schema":  {
+                                                                                              "$ref":  "#/definitions/docs.ErrorResponse"
+                                                                                          }
+                                                                           }
+                                                               }
+                                             },
+                                     "put":  {
+                                                 "description":  "Met à jour les informations d\u0027un utilisateur",
+                                                 "consumes":  [
+                                                                  "application/json"
+                                                              ],
+                                                 "produces":  [
+                                                                  "application/json"
+                                                              ],
+                                                 "tags":  [
+                                                              "Users"
+                                                          ],
+                                                 "summary":  "Mettre à jour un utilisateur",
+                                                 "parameters":  [
+                                                                    {
+                                                                        "type":  "string",
+                                                                        "description":  "ID de l\u0027utilisateur",
+                                                                        "name":  "id",
+                                                                        "in":  "path",
+                                                                        "required":  true
+                                                                    },
+                                                                    {
+                                                                        "description":  "Nouvelles informations",
+                                                                        "name":  "request",
+                                                                        "in":  "body",
+                                                                        "required":  true,
+                                                                        "schema":  {
+                                                                                       "$ref":  "#/definitions/dtos.UserRequest"
+                                                                                   }
+                                                                    }
+                                                                ],
+                                                 "responses":  {
+                                                                   "200":  {
+                                                                               "description":  "OK",
+                                                                               "schema":  {
+                                                                                              "$ref":  "#/definitions/dtos.UserResponse"
+                                                                                          }
+                                                                           },
+                                                                   "400":  {
+                                                                               "description":  "Bad Request",
+                                                                               "schema":  {
+                                                                                              "$ref":  "#/definitions/docs.ErrorResponse"
+                                                                                          }
+                                                                           },
+                                                                   "500":  {
+                                                                               "description":  "Internal Server Error",
+                                                                               "schema":  {
+                                                                                              "$ref":  "#/definitions/docs.ErrorResponse"
+                                                                                          }
+                                                                           }
+                                                               }
+                                             },
+                                     "delete":  {
+                                                    "description":  "Supprime un utilisateur par son ID",
+                                                    "consumes":  [
+                                                                     "application/json"
+                                                                 ],
+                                                    "produces":  [
+                                                                     "application/json"
+                                                                 ],
+                                                    "tags":  [
+                                                                 "Users"
+                                                             ],
+                                                    "summary":  "Supprimer un utilisateur",
+                                                    "parameters":  [
+                                                                       {
+                                                                           "type":  "string",
+                                                                           "description":  "ID de l\u0027utilisateur",
+                                                                           "name":  "id",
+                                                                           "in":  "path",
+                                                                           "required":  true
+                                                                       }
+                                                                   ],
+                                                    "responses":  {
+                                                                      "204":  {
+                                                                                  "description":  "No Content"
+                                                                              },
+                                                                      "500":  {
+                                                                                  "description":  "Internal Server Error",
+                                                                                  "schema":  {
+                                                                                                 "$ref":  "#/definitions/docs.ErrorResponse"
+                                                                                             }
+                                                                              }
+                                                                  }
+                                                }
+                                 },
+                  "/users":  {
+                                 "get":  {
+                                             "description":  "Récupère la liste de tous les utilisateurs",
+                                             "consumes":  [
+                                                              "application/json"
+                                                          ],
+                                             "produces":  [
+                                                              "application/json"
+                                                          ],
+                                             "tags":  [
+                                                          "Users"
+                                                      ],
+                                             "summary":  "Liste tous les utilisateurs",
+                                             "responses":  {
+                                                               "200":  {
+                                                                           "description":  "OK",
+                                                                           "schema":  {
+                                                                                          "type":  "array",
+                                                                                          "items":  {
+                                                                                                        "$ref":  "#/definitions/dtos.UserResponse"
+                                                                                                    }
+                                                                                      }
+                                                                       },
+                                                               "500":  {
+                                                                           "description":  "Internal Server Error",
+                                                                           "schema":  {
+                                                                                          "$ref":  "#/definitions/docs.ErrorResponse"
+                                                                                      }
+                                                                       }
+                                                           }
+                                         },
+                                 "post":  {
+                                              "description":  "Crée un nouvel utilisateur (sans authentification requise)",
+                                              "consumes":  [
+                                                               "application/json"
+                                                           ],
+                                              "produces":  [
+                                                               "application/json"
+                                                           ],
+                                              "tags":  [
+                                                           "Users"
+                                                       ],
+                                              "summary":  "Créer un utilisateur",
+                                              "parameters":  [
+                                                                 {
+                                                                     "description":  "Informations utilisateur",
+                                                                     "name":  "request",
+                                                                     "in":  "body",
+                                                                     "required":  true,
+                                                                     "schema":  {
+                                                                                    "$ref":  "#/definitions/dtos.UserRequest"
+                                                                                }
+                                                                 }
+                                                             ],
+                                              "responses":  {
+                                                                "201":  {
+                                                                            "description":  "Created",
+                                                                            "schema":  {
+                                                                                           "$ref":  "#/definitions/dtos.UserResponse"
+                                                                                       }
+                                                                        },
+                                                                "400":  {
+                                                                            "description":  "Bad Request",
+                                                                            "schema":  {
+                                                                                           "$ref":  "#/definitions/docs.ErrorResponse"
+                                                                                       }
+                                                                        },
+                                                                "409":  {
+                                                                            "description":  "Email déjà utilisé",
+                                                                            "schema":  {
+                                                                                           "$ref":  "#/definitions/docs.ErrorResponse"
+                                                                                       }
+                                                                        },
+                                                                "500":  {
+                                                                            "description":  "Internal Server Error",
+                                                                            "schema":  {
+                                                                                           "$ref":  "#/definitions/docs.ErrorResponse"
+                                                                                       }
+                                                                        }
+                                                            }
+                                          }
+                             }
+              },
+    "definitions":  {
+                        "docs.ErrorResponse":  {
+                                                   "type":  "object",
+                                                   "properties":  {
+                                                                      "error":  {
+                                                                                    "type":  "string",
+                                                                                    "example":  "Message d\u0027erreur"
+                                                                                }
+                                                                  }
+                                               },
+                        "dtos.CategoryRequest":  {
+                                                     "description":  "Informations catégorie pour création/modification",
+                                                     "type":  "object",
+                                                     "required":  [
+                                                                      "name"
+                                                                  ],
+                                                     "properties":  {
+                                                                        "name":  {
+                                                                                     "description":  "Nom de la catégorie",
+                                                                                     "type":  "string",
+                                                                                     "example":  "Visage"
+                                                                                 }
+                                                                    }
+                                                 },
+                        "dtos.CategoryResponse":  {
+                                                      "description":  "Informations catégorie",
+                                                      "type":  "object",
+                                                      "properties":  {
+                                                                         "createdAt":  {
+                                                                                           "description":  "Date de création",
+                                                                                           "type":  "string",
+                                                                                           "example":  "2024-01-01T00:00:00Z"
+                                                                                       },
+                                                                         "id":  {
+                                                                                    "description":  "UUID de la catégorie",
+                                                                                    "type":  "string",
+                                                                                    "example":  "550e8400-e29b-41d4-a716-446655440000"
+                                                                                },
+                                                                         "name":  {
+                                                                                      "description":  "Nom de la catégorie",
+                                                                                      "type":  "string",
+                                                                                      "example":  "Visage"
+                                                                                  },
+                                                                         "updatedAt":  {
+                                                                                           "description":  "Date de mise à jour",
+                                                                                           "type":  "string",
+                                                                                           "example":  "2024-01-01T00:00:00Z"
+                                                                                       }
+                                                                     }
+                                                  },
+                        "dtos.CreateOrderRequest":  {
+                                                        "description":  "Requête de création de commande",
+                                                        "type":  "object",
+                                                        "required":  [
+                                                                         "items"
+                                                                     ],
+                                                        "properties":  {
+                                                                           "items":  {
+                                                                                         "description":  "Liste des items de la commande (minimum 1)",
+                                                                                         "type":  "array",
+                                                                                         "minItems":  1,
+                                                                                         "items":  {
+                                                                                                       "$ref":  "#/definitions/dtos.OrderItemRequest"
+                                                                                                   }
+                                                                                     }
+                                                                       }
+                                                    },
+                        "dtos.LoginRequest":  {
+                                                  "description":  "Identifiants de connexion",
+                                                  "type":  "object",
+                                                  "required":  [
+                                                                   "email",
+                                                                   "password"
+                                                               ],
+                                                  "properties":  {
+                                                                     "email":  {
+                                                                                   "description":  "Email de l\u0027utilisateur",
+                                                                                   "type":  "string",
+                                                                                   "example":  "user@example.com"
+                                                                               },
+                                                                     "password":  {
+                                                                                      "description":  "Mot de passe",
+                                                                                      "type":  "string",
+                                                                                      "example":  "password123"
+                                                                                  }
+                                                                 }
+                                              },
+                        "dtos.LoginResponse":  {
+                                                   "description":  "Réponse de connexion avec token JWT",
+                                                   "type":  "object",
+                                                   "properties":  {
+                                                                      "token":  {
+                                                                                    "description":  "Token JWT",
+                                                                                    "type":  "string",
+                                                                                    "example":  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                                                                                },
+                                                                      "user":  {
+                                                                                   "description":  "Informations de l\u0027utilisateur",
+                                                                                   "allOf":  [
+                                                                                                 {
+                                                                                                     "$ref":  "#/definitions/dtos.UserResponse"
+                                                                                                 }
+                                                                                             ]
+                                                                               }
+                                                                  }
+                                               },
+                        "dtos.OrderItemRequest":  {
+                                                      "description":  "Item de commande avec produit et quantité",
+                                                      "type":  "object",
+                                                      "required":  [
+                                                                       "productID",
+                                                                       "quantity"
+                                                                   ],
+                                                      "properties":  {
+                                                                         "productID":  {
+                                                                                           "description":  "ID du produit",
+                                                                                           "type":  "string",
+                                                                                           "example":  "550e8400-e29b-41d4-a716-446655440000"
+                                                                                       },
+                                                                         "quantity":  {
+                                                                                          "description":  "Quantité commandée (doit être \u003e 0)",
+                                                                                          "type":  "integer",
+                                                                                          "example":  2
+                                                                                      }
+                                                                     }
+                                                  },
+                        "dtos.OrderItemResponse":  {
+                                                       "description":  "Item de commande avec détails du produit",
+                                                       "type":  "object",
+                                                       "properties":  {
+                                                                          "id":  {
+                                                                                     "description":  "UUID de l\u0027item",
+                                                                                     "type":  "string",
+                                                                                     "example":  "550e8400-e29b-41d4-a716-446655440000"
+                                                                                 },
+                                                                          "price":  {
+                                                                                        "description":  "Prix unitaire au moment de la commande",
+                                                                                        "type":  "number",
+                                                                                        "example":  29.99
+                                                                                    },
+                                                                          "product":  {
+                                                                                          "description":  "Détails du produit",
+                                                                                          "allOf":  [
+                                                                                                        {
+                                                                                                            "$ref":  "#/definitions/dtos.ProductResponse"
+                                                                                                        }
+                                                                                                    ]
+                                                                                      },
+                                                                          "quantity":  {
+                                                                                           "description":  "Quantité commandée",
+                                                                                           "type":  "integer",
+                                                                                           "example":  2
+                                                                                       }
+                                                                      }
+                                                   },
+                        "dtos.OrderResponse":  {
+                                                   "description":  "Informations complètes d\u0027une commande",
+                                                   "type":  "object",
+                                                   "properties":  {
+                                                                      "createdAt":  {
+                                                                                        "description":  "Date de création",
+                                                                                        "type":  "string",
+                                                                                        "example":  "2024-01-01T00:00:00Z"
+                                                                                    },
+                                                                      "id":  {
+                                                                                 "description":  "UUID de la commande",
+                                                                                 "type":  "string",
+                                                                                 "example":  "550e8400-e29b-41d4-a716-446655440000"
+                                                                             },
+                                                                      "orderDate":  {
+                                                                                        "description":  "Date de la commande",
+                                                                                        "type":  "string",
+                                                                                        "example":  "2024-01-01T00:00:00Z"
+                                                                                    },
+                                                                      "orderItems":  {
+                                                                                         "description":  "Liste des items de la commande",
+                                                                                         "type":  "array",
+                                                                                         "items":  {
+                                                                                                       "$ref":  "#/definitions/dtos.OrderItemResponse"
+                                                                                                   }
+                                                                                     },
+                                                                      "status":  {
+                                                                                     "description":  "Statut de la commande",
+                                                                                     "type":  "string",
+                                                                                     "enum":  [
+                                                                                                  "PENDING",
+                                                                                                  "SHIPPED",
+                                                                                                  "DELIVERED",
+                                                                                                  "CANCELLED"
+                                                                                              ],
+                                                                                     "example":  "PENDING"
+                                                                                 },
+                                                                      "totalAmount":  {
+                                                                                          "description":  "Montant total de la commande",
+                                                                                          "type":  "number",
+                                                                                          "example":  59.98
+                                                                                      },
+                                                                      "updatedAt":  {
+                                                                                        "description":  "Date de mise à jour",
+                                                                                        "type":  "string",
+                                                                                        "example":  "2024-01-01T00:00:00Z"
+                                                                                    },
+                                                                      "userID":  {
+                                                                                     "description":  "ID de l\u0027utilisateur",
+                                                                                     "type":  "string",
+                                                                                     "example":  "550e8400-e29b-41d4-a716-446655440000"
+                                                                                 }
+                                                                  }
+                                               },
+                        "dtos.ProductRequest":  {
+                                                    "description":  "Informations produit pour création/modification",
+                                                    "type":  "object",
+                                                    "required":  [
+                                                                     "name",
+                                                                     "price"
+                                                                 ],
+                                                    "properties":  {
+                                                                       "categoryID":  {
+                                                                                          "description":  "ID de la catégorie (optionnel)",
+                                                                                          "type":  "string",
+                                                                                          "example":  "550e8400-e29b-41d4-a716-446655440000"
+                                                                                      },
+                                                                       "description":  {
+                                                                                           "description":  "Description du produit",
+                                                                                           "type":  "string",
+                                                                                           "example":  "Crème hydratante pour peau sensible"
+                                                                                       },
+                                                                       "imageURL":  {
+                                                                                        "description":  "URL de l\u0027image du produit",
+                                                                                        "type":  "string",
+                                                                                        "example":  "https://example.com/image.jpg"
+                                                                                    },
+                                                                       "name":  {
+                                                                                    "description":  "Nom du produit",
+                                                                                    "type":  "string",
+                                                                                    "example":  "Crème hydratante"
+                                                                                },
+                                                                       "price":  {
+                                                                                     "description":  "Prix en euros (doit être \u003e 0)",
+                                                                                     "type":  "number",
+                                                                                     "example":  29.99
+                                                                                 },
+                                                                       "stock":  {
+                                                                                     "description":  "Quantité en stock",
+                                                                                     "type":  "integer",
+                                                                                     "minimum":  0,
+                                                                                     "example":  50
+                                                                                 }
+                                                                   }
+                                                },
+                        "dtos.ProductResponse":  {
+                                                     "description":  "Informations produit avec catégorie",
+                                                     "type":  "object",
+                                                     "properties":  {
+                                                                        "category":  {
+                                                                                         "description":  "Informations de la catégorie (si disponible)",
+                                                                                         "allOf":  [
+                                                                                                       {
+                                                                                                           "$ref":  "#/definitions/dtos.CategoryResponse"
+                                                                                                       }
+                                                                                                   ]
+                                                                                     },
+                                                                        "categoryID":  {
+                                                                                           "description":  "ID de la catégorie",
+                                                                                           "type":  "string",
+                                                                                           "example":  "550e8400-e29b-41d4-a716-446655440000"
+                                                                                       },
+                                                                        "createdAt":  {
+                                                                                          "description":  "Date de création",
+                                                                                          "type":  "string",
+                                                                                          "example":  "2024-01-01T00:00:00Z"
+                                                                                      },
+                                                                        "description":  {
+                                                                                            "description":  "Description",
+                                                                                            "type":  "string",
+                                                                                            "example":  "Crème hydratante pour peau sensible"
+                                                                                        },
+                                                                        "id":  {
+                                                                                   "description":  "UUID du produit",
+                                                                                   "type":  "string",
+                                                                                   "example":  "550e8400-e29b-41d4-a716-446655440000"
+                                                                               },
+                                                                        "imageURL":  {
+                                                                                         "description":  "URL de l\u0027image",
+                                                                                         "type":  "string",
+                                                                                         "example":  "https://example.com/image.jpg"
+                                                                                     },
+                                                                        "name":  {
+                                                                                     "description":  "Nom du produit",
+                                                                                     "type":  "string",
+                                                                                     "example":  "Crème hydratante"
+                                                                                 },
+                                                                        "price":  {
+                                                                                      "description":  "Prix en euros",
+                                                                                      "type":  "number",
+                                                                                      "example":  29.99
+                                                                                  },
+                                                                        "stock":  {
+                                                                                      "description":  "Quantité en stock",
+                                                                                      "type":  "integer",
+                                                                                      "example":  50
+                                                                                  },
+                                                                        "updatedAt":  {
+                                                                                          "description":  "Date de mise à jour",
+                                                                                          "type":  "string",
+                                                                                          "example":  "2024-01-01T00:00:00Z"
+                                                                                      }
+                                                                    }
+                                                 },
+                        "dtos.UpdateOrderStatusRequest":  {
+                                                              "description":  "Nouveau statut de commande",
+                                                              "type":  "object",
+                                                              "required":  [
+                                                                               "status"
+                                                                           ],
+                                                              "properties":  {
+                                                                                 "status":  {
+                                                                                                "description":  "Nouveau statut",
+                                                                                                "type":  "string",
+                                                                                                "enum":  [
+                                                                                                             "PENDING",
+                                                                                                             "SHIPPED",
+                                                                                                             "DELIVERED",
+                                                                                                             "CANCELLED"
+                                                                                                         ],
+                                                                                                "example":  "SHIPPED"
+                                                                                            }
+                                                                             }
+                                                          },
+                        "dtos.UserRequest":  {
+                                                 "description":  "Informations utilisateur pour inscription/modification",
+                                                 "type":  "object",
+                                                 "required":  [
+                                                                  "email",
+                                                                  "password"
+                                                              ],
+                                                 "properties":  {
+                                                                    "email":  {
+                                                                                  "description":  "Email de l\u0027utilisateur",
+                                                                                  "type":  "string",
+                                                                                  "example":  "user@example.com"
+                                                                              },
+                                                                    "password":  {
+                                                                                     "description":  "Mot de passe (min 6 caractères)",
+                                                                                     "type":  "string",
+                                                                                     "minLength":  6,
+                                                                                     "example":  "password123"
+                                                                                 }
+                                                                }
+                                             },
+                        "dtos.UserResponse":  {
+                                                  "description":  "Informations utilisateur (sans mot de passe)",
+                                                  "type":  "object",
+                                                  "properties":  {
+                                                                     "createdAt":  {
+                                                                                       "description":  "Date de création",
+                                                                                       "type":  "string",
+                                                                                       "example":  "2024-01-01T00:00:00Z"
+                                                                                   },
+                                                                     "email":  {
+                                                                                   "description":  "Email de l\u0027utilisateur",
+                                                                                   "type":  "string",
+                                                                                   "example":  "user@example.com"
+                                                                               },
+                                                                     "id":  {
+                                                                                "description":  "UUID de l\u0027utilisateur",
+                                                                                "type":  "string",
+                                                                                "example":  "550e8400-e29b-41d4-a716-446655440000"
+                                                                            },
+                                                                     "role":  {
+                                                                                  "description":  "Rôle: USER ou ADMIN",
+                                                                                  "type":  "string",
+                                                                                  "enum":  [
+                                                                                               "USER",
+                                                                                               "ADMIN"
+                                                                                           ],
+                                                                                  "example":  "USER"
+                                                                              },
+                                                                     "updatedAt":  {
+                                                                                       "description":  "Date de mise à jour",
+                                                                                       "type":  "string",
+                                                                                       "example":  "2024-01-01T00:00:00Z"
+                                                                                   }
+                                                                 }
+                                              }
+                    },
+    "securityDefinitions":  {
+                                "BearerAuth":  {
+                                                   "description":  "Type \"Bearer\" suivi d\u0027un espace et du token JWT. Exemple: \"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\"",
+                                                   "type":  "apiKey",
+                                                   "name":  "Authorization",
+                                                   "in":  "header"
+                                               }
+                            },
+    "tags":  [
+                 {
+                     "name":  "Authentication",
+                     "description":  "Endpoints d authentification"
+                 },
+                 {
+                     "name":  "Products",
+                     "description":  "Gestion des produits de soins"
+                 },
+                 {
+                     "name":  "Orders",
+                     "description":  "Gestion des commandes"
+                 },
+                 {
+                     "name":  "Categories",
+                     "description":  "Gestion des categories de produits"
+                 },
+                 {
+                     "name":  "Users",
+                     "description":  "Gestion des utilisateurs"
+                 }
+             ]
+}
