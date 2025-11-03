@@ -91,11 +91,17 @@ func main() {
 
 	
 
-	// Enregistrez les routes des produits
+	
+
+	// Enregistrez les routes des catégories
+routes.RegisterCategoryRoutes(r, client)
 routes.RegisterProductRoutes(r, client)
 	routes.RegisterAuthRoutes(r, client)
 
-	// Enregistrez les routes des produits
+	
+
+	// Enregistrez les routes des catégories
+routes.RegisterCategoryRoutes(r, client)
 	routes.RegisterProductRoutes(r, client)
 
 	// Enregistrez les routes des catégories
@@ -106,7 +112,10 @@ routes.RegisterProductRoutes(r, client)
 
 		
 
-	// Enregistrez les routes des produits
+	
+
+	// Enregistrez les routes des catégories
+routes.RegisterCategoryRoutes(r, client)
 routes.RegisterProductRoutes(r, client)
 routes.RegisterAuthRoutes(r, client)
 
