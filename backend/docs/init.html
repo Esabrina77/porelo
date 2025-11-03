@@ -6,11 +6,12 @@
     <title>TUTO API GO/PRISMA - Étape 1 : Initialisation</title>
     <style>
         body { font-family: Arial, sans-serif; line-height: 1.6; padding: 20px; background-color: #f4f4f9; }
-        h1, h2 { color: #333; border-bottom: 2px solid #ccc; padding-bottom: 5px; }
+        h1, h2, h3 { color: #333; border-bottom: 2px solid #ccc; padding-bottom: 5px; }
         code { background-color: #eee; padding: 2px 4px; border-radius: 3px; }
-        pre { background-color: #272822; color: #f8f8f2; padding: 10px; border-radius: 5px; overflow-x: auto; }
+        pre { background-color: #272822; color: #812f00; padding: 10px; border-radius: 5px; overflow-x: auto; }
         .command { color: #007bff; font-weight: bold; }
         .folder { color: #008000; }
+        .alert { background-color: #ffe0e6; color: #cc0033; padding: 10px; border-radius: 5px; border-left: 5px solid #cc0033; margin-top: 15px; }
     </style>
 </head>
 <body>
@@ -23,19 +24,19 @@
         <li>Avoir Go installé (version 1.18+ recommandée).</li>
         <li>Avoir Node.js/npm (nécessaire pour l'outil CLI de Prisma).</li>
         <li>Avoir Docker ou une instance PostgreSQL accessible.</li>
-        <li>Ouvrez votre terminal et initialisez votre module Go :<pre><code class="command">go mod init backend</code></pre></li>
-        <li>Installez le client Go pour Prisma et le routeur Chi :<pre><code class="command">go get github.com/steebchen/prisma-client-go github.com/go-chi/chi/v5 github.com/joho/godotenv golang.org/x/crypto/bcrypt github.com/golang-jwt/jwt/v5</code></pre></li>
+        <li>Ouvrez votre terminal et initialisez votre module Go (Ex: <code>backend</code>) :<pre><code class="command">go mod init backend</code></pre></li>
+        <li>Installez les dépendances Go nécessaires :<pre><code class="command">go get github.com/steebchen/prisma-client-go github.com/go-chi/chi/v5 github.com/joho/godotenv golang.org/x/crypto/bcrypt github.com/golang-jwt/jwt/v5</code></pre></li>
     </ul>
 
     <h2>2. Arborescence des Fichiers (Structure du Projet)</h2>
-    <p>Nous utilisons la convention **Standard Go Project Layout** (`/internal`, `/cmd`) pour une meilleure organisation et maintenabilité. Votre structure est excellente :</p>
+    <p>Nous adoptons cette structure standardisée :</p>
     <pre>
 <span class="folder">📦backend</span>
  ┣ 📂<span class="folder">internal</span>
+ ┃ ┣ 📂<span class="folder">db</span>            <span class="folder">// Le client Go de Prisma est généré ici</span>
  ┃ ┣ 📂<span class="folder">handlers</span>      <span class="folder">// Gère les requêtes HTTP (Contrôleurs)</span>
  ┃ ┣ 📂<span class="folder">middlewares</span>   <span class="folder">// Fonctions de traitement des requêtes (JWT, Rôles)</span>
  ┃ ┣ 📂<span class="folder">models</span>        <span class="folder">// Structures Go pour la sérialisation/désérialisation</span>
- ┃ ┣ 📂<span class="folder">routes</span>        <span class="folder">// Définition centralisée des chemins d'API</span>
  ┃ ┣ 📂<span class="folder">services</span>      <span class="folder">// Logique métier et interaction avec la DB via Prisma</span>
  ┃ ┗ 📂<span class="folder">utils</span>         <span class="folder">// Fonctions d'aide (réponses JSON, erreurs, etc.)</span>
  ┣ 📂<span class="folder">prisma</span>        <span class="folder">// Fichiers de configuration de Prisma</span>
@@ -45,30 +46,35 @@
  ┗ 📜<span class="folder">README.md</span>
     </pre>
 
-    <h2>3. Initialisation de Prisma et Configuration</h2>
-    <p>Nous allons initialiser Prisma et définir les modèles de base pour l'utilisateur et les produits.</p>
+    <h2>3. Configuration de Prisma</h2>
 
     <h3>3.1 Fichier <code>.env</code></h3>
-    <p>Créez le fichier <code>.env</code> à la racine et renseignez votre URL de connexion PostgreSQL ainsi que le secret JWT :</p>
+    <p>Créez le fichier <code>.env</code> à la racine et renseignez les variables d'environnement. Ces variables sont cruciales pour Go (PORT, JWT_SECRET) et pour Prisma (DATABASE_URL).</p>
     <pre><code>
 PORT=8080
 DATABASE_URL="postgresql://user:password@localhost:5432/cosmetics_db?schema=public"
 JWT_SECRET="UnSecretTresLongEtAleatoirePourJWT"
     </code></pre>
 
-    <h3>3.2 Lancement de Prisma</h3>
-    <p>Initialisez l'environnement Prisma dans votre projet :</p>
+    <h3>3.2 Lancement et Nettoyage de Prisma</h3>
+    <p>Initialisez l'environnement Prisma dans votre projet (assurez-vous d'être dans le dossier racine <code>backend</code>) :</p>
     <pre><code class="command">npx prisma init</code></pre>
+    
+    <div class="alert">
+        <strong>⚠️ POINT CRUCIAL (ÉVITER LES ERREURS) :</strong>
+        <p>Après <code>npx prisma init</code>, si un fichier nommé <code>prisma.config.ts</code> apparaît à la racine de votre projet, **vous devez le supprimer !**</p>
+        <p>Il est destiné aux projets TypeScript/Node avancés. Dans notre projet Go, il cause une erreur lors de la génération. Supprimez-le immédiatement :</p>
+        <pre><code class="command">rm prisma.config.ts</code> (sur Linux/macOS) ou <code>del prisma.config.ts</code> (sur Windows)</pre>
+    </div>
 
     <h2>4. Modélisation de la Base de Données (schema.prisma)</h2>
-    <p>Éditez le fichier <code>prisma/schema.prisma</code> pour y inclure les modèles <code>User</code> (avec gestion des rôles) et <code>Product</code> :</p>
+    <p>Éditez le fichier <code>prisma/schema.prisma</code> pour y inclure les modèles <code>User</code> et <code>Product</code>. Attention à l'attribut <code>output</code> pour la génération du client Go.</p>
     <pre><code>
 // prisma/schema.prisma
-// ... (Les premières lignes generator et datasource restent les mêmes) ...
 
 generator go {
   provider = "go run github.com/steebchen/prisma-client-go"
-  // On spécifie où sera généré le client Go pour qu'il soit interne au projet
+  // Le client Go sera généré dans internal/db
   output   = "./internal/db" 
 }
 
@@ -77,7 +83,7 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// L'énumération pour gérer les rôles
+// L'énumération pour la gestion des rôles
 enum Role {
   USER
   ADMIN
@@ -90,7 +96,7 @@ model User {
   role      Role      @default(USER) // Rôle par défaut
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
-  products  Product[] // Relation : un utilisateur peut avoir créé plusieurs produits
+  products  Product[] // Relation : produits créés par cet utilisateur
 }
 
 model Product {
@@ -102,17 +108,17 @@ model Product {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   
-  // Relation à l'utilisateur qui a créé/modifié le produit
+  // Clé étrangère vers l'utilisateur
   authorId    String
   author      User     @relation(fields: [authorId], references: [id])
 }
     </code></pre>
 
     <h2>5. Génération du Client Go et Migration</h2>
-    <p>Après avoir défini le schéma, générez le client Go (dans <code>internal/db</code>) et appliquez les changements à votre base de données PostgreSQL :</p>
+    <p>Maintenant, générez le client Go et appliquez les changements à votre base de données PostgreSQL :</p>
     <pre><code class="command">npx prisma generate
 npx prisma migrate dev --name init_models</code></pre>
-    <p>Le client Go est maintenant prêt à être importé !</p>
+    <p>Si ces commandes réussissent, vous avez bien généré le client Go dans <code>internal/db/</code> et votre base de données est prête !</p>
 
 </body>
 </html>

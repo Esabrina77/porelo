@@ -1,23 +1,38 @@
+// main.go
 package main
 
 import (
-	"fmt"
+	"log"
 	"net/http"
+	"os"
+
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
+
+	"api/internal/db"
+	"api/internal/routes"
 )
 
-type Items struct {
-	ID   int
-	Name string
-}
-
 func main() {
+	client := db.NewClient()
+	if err := client.Connect(); err != nil {
+		log.Fatal("Erreur de connexion Prisma: ", err)
+	}
 
-	//http
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+	r := chi.NewRouter()
+	r.Use(middleware.Logger)
+	r.Use(middleware.Recoverer)
 
-		fmt.Fprintln(w, "TEST CONNEXION")
+	// Enregistrez les routes liées aux utilisateurs
+	routes.RegisterUserRoutes(r, client)
 
-	})
-
-	http.ListenAndServe(":8080", nil)
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+	addr := ":" + port
+	log.Printf("Listening on %s", addr)
+	if err := http.ListenAndServe(addr, r); err != nil {
+		log.Fatal(err)
+	}
 }

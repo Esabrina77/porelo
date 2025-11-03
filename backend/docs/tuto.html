@@ -1,0 +1,453 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Tutoriel : API REST en Go avec Prisma et chi</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 2em; background: #fbfbfb; color: #222;}
+        pre, code { background: #979393; padding: 0.2em 0.4em;}
+        h1, h2 { color: #2979ff;}
+        ul { margin-bottom: 1em;}
+        .important { color: #d32f2f; font-weight: bold;}
+        .file-box { background: #f3f3f3; padding: 0.6em 1em; border-left: 4px solid #2979ff; margin-bottom: 1em;}
+    </style>
+</head>
+<body>
+    <h1>Créer une API REST en Go avec Prisma et chi</h1>
+
+    <h2>1. Outils nécessaires</h2>
+    <ul>
+        <li><b>Go</b> : Langage compilé, rapide, parfait pour les API web</li>
+        <li><b>Prisma Client Go</b> : ORM type-safe pour interagir avec la base (PostgreSQL, MySQL…)</li>
+        <li><b>chi</b> : Routeur HTTP moderne, léger et très modulaire</li>
+        <li><b>Bcrypt</b> : Pour hasher les mots de passe</li>
+    </ul>
+
+    <h2>2. Arborescence du projet</h2>
+    <div class="file-box">
+<pre>
+api/
+ ├── go.mod
+ ├── main.go
+ ├── prisma/
+ │    └── schema.prisma
+ └── internal/
+      ├── db/
+      │    ├── db_gen.go
+      │    └── query-engine-windows_gen.go
+      ├── models/
+      │    └── users.go
+      ├── services/
+      │    └── user_service.go
+      ├── handlers/
+      │    └── users.go
+      ├── routes/
+      │    └── users.go
+      ├── utils/
+      │    ├── response.go
+      │    └── hash.go
+</pre>
+    </div>
+
+    <h2>3. Initialiser le module Go</h2>
+    <pre>go mod init api</pre>
+    <h2>4. Installer les dépendances</h2>
+    <pre>
+go get github.com/go-chi/chi/v5
+go get golang.org/x/crypto/bcrypt
+go get github.com/steebchen/prisma-client-go
+    </pre>
+
+    <h2>5. Préparer Prisma</h2>
+    <div class="file-box">
+        <b>prisma/schema.prisma</b>
+        <pre>
+generator go {
+  provider = "go run github.com/steebchen/prisma-client-go"
+  output   = "../internal/db"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  role      Role     @default(USER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+        </pre>
+        <p>Lance odede>prisma generate</code> pour générer le client Go.</p>
+    </div>
+
+    <h2>6. Contenu des fichiers Go</h2>
+
+    <h3>main.go</h3>
+    <div class="file-box">
+<pre>
+package main
+
+import (
+    "log"
+    "net/http"
+    "os"
+
+    "github.com/go-chi/chi/v5"
+    "github.com/go-chi/chi/v5/middleware"
+    "api/internal/db"
+    "api/internal/routes"
+)
+
+func main() {
+    client := db.NewClient()
+    if err := client.Connect(); err != nil {
+        log.Fatal("Erreur de connexion Prisma: ", err)
+    }
+
+    r := chi.NewRouter()
+    r.Use(middleware.Logger)
+    r.Use(middleware.Recoverer)
+
+    routes.RegisterUserRoutes(r, client)
+
+    port := os.Getenv("PORT")
+    if port == "" {
+        port = "8080"
+    }
+    addr := ":" + port
+    log.Printf("Listening on %s", addr)
+    if err := http.ListenAndServe(addr, r); err != nil {
+        log.Fatal(err)
+    }
+}
+</pre>
+    </div>
+
+    <h3>internal/models/users.go</h3>
+    <div class="file-box">
+<pre>
+package models
+
+type User struct {
+    ID        string
+    Email     string
+    Password  string
+    Role      string
+    CreatedAt string
+    UpdatedAt string
+}
+</pre>
+    </div>
+
+    <h3>internal/utils/hash.go</h3>
+    <div class="file-box">
+<pre>
+package utils
+
+import "golang.org/x/crypto/bcrypt"
+
+func HashPassword(password string) (string, error) {
+    HashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+    return string(HashedPassword), err
+}
+
+func CheckPassword(password, HashedPassword string) bool {
+    err := bcrypt.CompareHashAndPassword([]byte(HashedPassword), []byte(password))
+    return err == nil
+}
+</pre>
+    </div>
+
+    <h3>internal/utils/response.go</h3>
+    <div class="file-box">
+<pre>
+package utils
+
+import (
+    "encoding/json"
+    "net/http"
+)
+
+func RespondJSON(w http.ResponseWriter, status int, payload interface{}) {
+    w.Header().Set("Content-Type", "application/json")
+    w.WriteHeader(status)
+    json.NewEncoder(w).Encode(payload)
+}
+</pre>
+    </div>
+
+    <h3>internal/services/user_service.go</h3>
+    <div class="file-box">
+<pre>
+package services
+
+import (
+    "context"
+    "api/internal/db"
+    "api/internal/models"
+    "api/internal/utils"
+    "fmt"
+)
+
+func CreateUser(client *db.PrismaClient, email string, password string, role string) (*models.User, error) {
+    ctx := context.Background()
+    hash, err := utils.HashPassword(password)
+    if err != nil {
+        return nil, err
+    }
+    newUser, err := client.User.CreateOne(
+        db.User.Email.Set(email),
+        db.User.Password.Set(hash),
+        db.User.Role.Set(db.Role(role)),
+    ).Exec(ctx)
+    if err != nil {
+        return nil, err
+    }
+    return &models.User{
+        ID:        newUser.ID,
+        Email:     newUser.Email,
+        Password:  newUser.Password,
+        Role:      string(newUser.Role),
+        CreatedAt: newUser.CreatedAt.String(),
+        UpdatedAt: newUser.UpdatedAt.String(),
+    }, nil
+}
+
+func GetUserByID(client *db.PrismaClient, userID string) (*models.User, error) {
+    ctx := context.Background()
+    u, err := client.User.FindUnique(
+        db.User.ID.Equals(userID),
+    ).Exec(ctx)
+    if err != nil {
+        return nil, fmt.Errorf("Erreur récupération user: %w", err)
+    }
+    if u == nil {
+        return nil, nil
+    }
+    return &models.User{
+        ID:        u.ID,
+        Email:     u.Email,
+        Password:  u.Password,
+        Role:      string(u.Role),
+        CreatedAt: u.CreatedAt.String(),
+        UpdatedAt: u.UpdatedAt.String(),
+    }, nil
+}
+
+func UpdateUser(client *db.PrismaClient, userID, email, password string) (*models.User, error) {
+    ctx := context.Background()
+    hash, err := utils.HashPassword(password)
+    if err != nil {
+        return nil, err
+    }
+    u, err := client.User.FindUnique(
+        db.User.ID.Equals(userID),
+    ).Update(
+        db.User.Email.Set(email),
+        db.User.Password.Set(hash),
+    ).Exec(ctx)
+    if err != nil {
+        return nil, err
+    }
+    return &models.User{
+        ID:        u.ID,
+        Email:     u.Email,
+        Password:  u.Password,
+        Role:      string(u.Role),
+        CreatedAt: u.CreatedAt.String(),
+        UpdatedAt: u.UpdatedAt.String(),
+    }, nil
+}
+
+func DeleteUser(client *db.PrismaClient, userID string) error {
+    ctx := context.Background()
+    return client.User.FindUnique(
+        db.User.ID.Equals(userID),
+    ).Delete().Exec(ctx)
+}
+
+func ListUsers(client *db.PrismaClient) ([]*models.User, error) {
+    ctx := context.Background()
+    users, err := client.User.FindMany().Exec(ctx)
+    if err != nil {
+        return nil, err
+    }
+    result := make([]*models.User, len(users))
+    for i, u := range users {
+        result[i] = &models.User{
+            ID:        u.ID,
+            Email:     u.Email,
+            Password:  u.Password,
+            Role:      string(u.Role),
+            CreatedAt: u.CreatedAt.String(),
+            UpdatedAt: u.UpdatedAt.String(),
+        }
+    }
+    return result, nil
+}
+</pre>
+    </div>
+
+    <h3>internal/handlers/users.go</h3>
+    <div class="file-box">
+<pre>
+package handlers
+
+import (
+    "encoding/json"
+    "net/http"
+    "github.com/go-chi/chi/v5"
+    "api/internal/services"
+    "api/internal/db"
+)
+
+type UserRequest struct {
+    Email    string `json:"email"`
+    Password string `json:"password"`
+    Role     string `json:"role"`
+}
+
+func CreateUser(client *db.PrismaClient) http.HandlerFunc {
+    return func(w http.ResponseWriter, r *http.Request) {
+        var req UserRequest
+        if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+            http.Error(w, "JSON invalide", http.StatusBadRequest)
+            return
+        }
+        if req.Email == "" || req.Password == "" {
+            http.Error(w, "Email et password requis", http.StatusBadRequest)
+            return
+        }
+        user, err := services.CreateUser(client, req.Email, req.Password, req.Role)
+        if err != nil {
+            http.Error(w, "Erreur création utilisateur", http.StatusInternalServerError)
+            return
+        }
+        w.Header().Set("Content-Type", "application/json")
+        json.NewEncoder(w).Encode(user)
+    }
+}
+
+func GetUserHandler(client *db.PrismaClient) http.HandlerFunc {
+    return func(w http.ResponseWriter, r *http.Request) {
+        userID := chi.URLParam(r, "id")
+        user, err := services.GetUserByID(client, userID)
+        if err != nil {
+            http.Error(w, "Erreur serveur", http.StatusInternalServerError)
+            return
+        }
+        if user == nil {
+            http.Error(w, "Utilisateur non trouvé", http.StatusNotFound)
+            return
+        }
+        w.Header().Set("Content-Type", "application/json")
+        json.NewEncoder(w).Encode(user)
+    }
+}
+
+func UpdateUserHandler(client *db.PrismaClient) http.HandlerFunc {
+    return func(w http.ResponseWriter, r *http.Request) {
+        userID := chi.URLParam(r, "id")
+        var req UserRequest
+        if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+            http.Error(w, "JSON invalide", http.StatusBadRequest)
+            return
+        }
+        user, err := services.UpdateUser(client, userID, req.Email, req.Password)
+        if err != nil {
+            http.Error(w, "Erreur update", http.StatusInternalServerError)
+            return
+        }
+        w.Header().Set("Content-Type", "application/json")
+        json.NewEncoder(w).Encode(user)
+    }
+}
+
+func DeleteUserHandler(client *db.PrismaClient) http.HandlerFunc {
+    return func(w http.ResponseWriter, r *http.Request) {
+        userID := chi.URLParam(r, "id")
+        err := services.DeleteUser(client, userID)
+        if err != nil {
+            http.Error(w, "Erreur suppression", http.StatusInternalServerError)
+            return
+        }
+        w.WriteHeader(http.StatusNoContent)
+    }
+}
+
+func ListUsersHandler(client *db.PrismaClient) http.HandlerFunc {
+    return func(w http.ResponseWriter, r *http.Request) {
+        users, err := services.ListUsers(client)
+        if err != nil {
+            http.Error(w, "Erreur récupération users", http.StatusInternalServerError)
+            return
+        }
+        w.Header().Set("Content-Type", "application/json")
+        json.NewEncoder(w).Encode(users)
+    }
+}
+</pre>
+    </div>
+
+    <h3>internal/routes/users.go</h3>
+    <div class="file-box">
+<pre>
+package routes
+
+import (
+    "github.com/go-chi/chi/v5"
+    "api/internal/handlers"
+    "api/internal/db"
+)
+
+func RegisterUserRoutes(r chi.Router, client *db.PrismaClient) {
+    r.Post("/users", handlers.CreateUser(client))          // Create
+    r.Get("/users", handlers.ListUsersHandler(client))     // Read (list)
+    r.Get("/user/{id}", handlers.GetUserHandler(client))   // Read (single)
+    r.Put("/user/{id}", handlers.UpdateUserHandler(client))// Update
+    r.Delete("/user/{id}", handlers.DeleteUserHandler(client)) // Delete
+}
+</pre>
+    </div>
+
+    <h3>Explication des méthodes HTTP et endpoints</h3>
+    <ul>
+        <li><b>POST /users</b> : Crée un utilisateur</li>
+        <li><b>GET /users</b> : Récupère la liste de tous les utilisateurs</li>
+        <li><b>GET /user/{id}</b> : Récupère un utilisateur par son ID</li>
+        <li><b>PUT /user/{id}</b> : Met à jour un utilisateur</li>
+        <li><b>DELETE /user/{id}</b> : Supprime un utilisateur</li>
+    </ul>
+    <h3 class="important">Important sur la sécurité :</h3>
+    <ul>
+        <li>Toujours hasher les mots de passe avant insertion ! Bcrypt est le plus utilisé et très robuste.</li>
+        <li>Ne jamais retourner le mot de passe dans les API (ni même hashé !)</li>
+        <li>Utilisez des middlewares pour limiter l'accès aux routes sensibles (authentification, rôle…) – chi le permet facilement.</li>
+    </ul>
+
+    <h2>Pour aller plus loin</h2>
+    <ul>
+        <li>Ajoutez une gestion des rôles et permissions avec le champ <b>role</b></li>
+        <li>Ajoutez la pagination dans la méthode <b>ListUsers</b></li>
+        <li>Séparez les réponses JSON en <b>DTO</b> pour masquer des champs sensibles</li>
+        <li>Mettez en place des middlewares pour l’authentification JWT</li>
+    </ul>
+
+    <h2>Ressources utiles</h2>
+    <ul>
+        <li><a href="https://github.com/go-chi/chi" target="_blank">chi (GitHub)</a></li>
+        <li><a href="https://github.com/steebchen/prisma-client-go" target="_blank">Prisma Client Go (GitHub)</a></li>
+        <li><a href="https://www.prisma.io/docs/" target="_blank">Prisma documentation</a></li>
+    </ul>
+</body>
+</html>

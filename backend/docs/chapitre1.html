@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TUTO API GO/PRISMA - Chapitre 1 : Routeur Chi et .env</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; padding: 20px; background-color: #f4f4f9; }
+        h1, h2, h3 { color: #333; border-bottom: 2px solid #ccc; padding-bottom: 5px; }
+        code {  padding: 2px 4px; border-radius: 3px; }
+        pre { background-color: #272822; color: #f8f8f2; padding: 10px; border-radius: 5px; overflow-x: auto; }
+        .command { color: #007bff; font-weight: bold; }
+        .folder { color: #008000; }
+    </style>
+</head>
+<body>
+
+    <h1>Chapitre 1 : Routeur Chi et Variables d'Environnement (.env)</h1>
+    <p>Nous passons du serveur de base de Go à des outils plus adaptés à une API moderne.</p>
+
+    <h2>1. Pourquoi Chi et .env ?</h2>
+    <ul>
+        <li><strong>Chi (<code>github.com/go-chi/chi/v5</code>) :</strong> Le routeur de base de Go ne gère pas bien les middlewares (fonctions à exécuter avant le traitement) ni les chemins complexes (comme <code>/produits/{id}</code>). Chi est léger et puissant.</li>
+        <li><strong>.env (<code>github.com/joho/godotenv</code>) :</strong> Le port d'écoute ou les secrets (comme une clé d'API ou un mot de passe DB) ne devraient jamais être codés en dur dans le programme. Le fichier <code>.env</code> nous permet de configurer l'application sans modifier le code.</li>
+    </ul>
+
+    <h2>2. Installation des Nouvelles Dépendances</h2>
+    <p>Nous installons les deux packages nécessaires (Chi et Godotenv) si ce n'est pas déjà fait :</p>
+    <pre><code class="command">go get github.com/go-chi/chi/v5 github.com/joho/godotenv</code></pre>
+
+    <h2>3. Mise à Jour de <code>main.go</code></h2>
+    <p>Nous allons diviser le rôle de <code>main.go</code> en deux parties claires : une fonction pour la configuration des routes (<code>setupRouter</code>) et la fonction <code>main</code> pour le démarrage.</p>
+
+    <pre><code>
+// main.go (Version améliorée)
+package main
+
+import (
+	"fmt"
+	"log"
+	"net/http"
+	"os"
+
+	"github.com/go-chi/chi/v5" // Le nouveau routeur
+	"github.com/joho/godotenv" // Le lecteur de fichier .env
+)
+
+// setupRouter crée, configure et retourne notre routeur (Chi).
+// Cela permet d'avoir un code de main() plus propre.
+func setupRouter() *chi.Mux {
+	r := chi.NewRouter() // On crée le routeur
+
+	// Route de test. Le .Get signifie que la route ne répond qu'aux requêtes GET.
+	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
+		// On renvoie un code 200 (OK)
+		w.WriteHeader(http.StatusOK) 
+		fmt.Fprintln(w, "Routeur Chi OK, Serveur Prêt!")
+	})
+
+	// Toutes nos futures routes API iront dans un groupe /api/v1
+	r.Route("/api/v1", func(r chi.Router) {
+        // ... futurs routes pour /users, /products, etc.
+    })
+
+	return r
+}
+
+func main() {
+	// 1. Chargement des variables d'environnement (.env)
+	// Si le fichier n'est pas trouvé, on arrête le programme (log.Fatalf) car c'est critique.
+	if err := godotenv.Load(); err != nil {
+		log.Fatalf("FATAL: Erreur lors du chargement du fichier .env: %v", err)
+	}
+
+	// 2. Initialisation du routeur
+	router := setupRouter()
+
+	// 3. Définition du port
+	// On lit la variable PORT du fichier .env. Si elle est vide, on prend 8080.
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080" 
+	}
+	addr := fmt.Sprintf(":%s", port)
+
+	// 4. Démarrage du serveur
+	log.Printf("INFO: Serveur démarré sur http://localhost%s", addr)
+	
+	// On utilise log.Fatal pour ListenAndServe. Le serveur tourne jusqu'à ce qu'il y ait une erreur.
+	if err := http.ListenAndServe(addr, router); err != nil {
+		log.Fatalf("FATAL: Le serveur a échoué : %v", err)
+	}
+}
+    </code></pre>
+
+    <h2>4. Test de Lancement</h2>
+    <p>Lancez l'application et testez la route principale.</p>
+    <pre><code class="command">go run main.go</code></pre>
+    <p>Testez avec <code>curl http://localhost:8080</code> (ou le port de votre .env). Vous devriez voir <code>Routeur Chi OK, Serveur Prêt!</code></p>
+
+</body>
+</html>

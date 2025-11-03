@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Tutoriel ULTIME : API REST en Go (Clean Architecture, Prisma, JWT, Tests)</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 2em; background: #ffffff; color: #333; }
+        pre, code { background: #f4f4f4; padding: 0.2em 0.4em; border-radius: 4px; font-family: Consolas, 'Courier New', monospace; overflow-x: auto;}
+        h1 { color: #880e4f; border-bottom: 3px solid #c2185b; padding-bottom: 0.3em; }
+        h2 { color: #e91e63; margin-top: 1.5em; border-left: 5px solid #ff4081; padding-left: 0.5em; }
+        h3 { color: #f06292; margin-top: 1em; }
+        ul { list-style-type: disc; margin-left: 20px; }
+        .file-box { background: #fce4ec; padding: 1em; border-radius: 8px; margin-bottom: 1.5em; border: 1px solid #f8bbd0; }
+        .warning { color: #c62828; font-weight: bold; background: #ffebee; padding: 0.5em; border-radius: 4px; margin-top: 1em; }
+        .note { color: #388e3c; font-style: italic; background: #e8f5e9; padding: 0.5em; border-radius: 4px; margin-top: 1em; }
+        .code-title { font-weight: bold; color: #880e4f; margin-bottom: 0.5em; }
+    </style>
+</head>
+<body>
+    <h1>Tutoriel ULTIME : API REST en Go avec Architecture Modulaire, Sécurité et Robustesse</h1>
+
+    <p class="note">Ce guide est votre référence complète, couvrant l'architecture, la sécurité (JWT, Bcrypt, Rôles), les fonctionnalités avancées (Pagination, Filtrage) et la robustesse (Validation, Gestion des Erreurs, Tests). Adaptable à **tout projet** d'API REST en Go utilisant <code>chi</code> et <code>Prisma Client Go</code>.</p>
+
+    <h2>1. 🛠️ Outils, Prérequis et Dépendances Cruciales</h2>
+
+    <ul>
+        <li>**Go** : Langage de base (performance, concurrence).</li>
+        <li>**Prisma Client Go** : Couche d'accès aux données (ORM type-safe).</li>
+        <li>**chi** : Routeur HTTP.</li>
+        <li>**Bcrypt** : Pour le **hachage** des mots de passe.</li>
+        <li>**jwtauth/v5** : Pour l'implémentation du **JWT**.</li>
+        <li>**go-playground/validator/v10** : Pour la **validation** des DTOs.</li>
+        <li>**go-chi/host-limiter** : **(NOUVEAU)** Pour le **Rate Limiting** (limitation de débit).</li>
+        <li>**swaggo** (Optionnel) : **(NOUVEAU)** Pour la **Documentation** OpenAPI.</li>
+    </ul>
+
+    <h2>2. 🏗️ Architecture Modulaire (Inspirée de Clean/Hexagonal)</h2>
+    <p>L'objectif : séparez la logique métier (Services) des détails techniques (Prisma/DB).</p>
+    <div class="file-box">
+        <pre>
+api/
+ ├── internal/
+ │    ├── domain/            <span class="note">// 1. Le Cœur : Entités et Interfaces de Repository (Contrats)</span>
+ │    │    ├── user.go        <span class="note">// Structures (Model) et Interfaces. Ex: UserRepository interface</span>
+ │    ├── infrastructure/    <span class="note">// 2. L'Infrastructure : Implémentation technique</span>
+ │    │    ├── db/            <span class="note">// Code généré par Prisma</span>
+ │    │    └── repository/    <span class="note">// Implémentation du UserRepository avec Prisma</span>
+ │    ├── application/       <span class="note">// 3. La Logique : Cas d'utilisation (Services/Use Cases)</span>
+ │    │    └── user_service.go  <span class="note">// Contient la logique métier pure (interagit avec domain/user.go)</span>
+ │    └── delivery/          <span class="note">// 4. Le Transport : Couche HTTP</span>
+ │         ├── http/
+ │         │    ├── handlers/      <span class="note">// Logique HTTP (Validation, Erreurs, DTO, Service calls)</span>
+ │         │    └── middleware/    <span class="note">// JWT, Rôle, Rate Limiter</span>
+ │         └── routes/
+ ├── pkg/                     <span class="note">// Utilitaires réutilisables</span>
+ │    └── errors/              <span class="note">// **NOUVEAU** Gestion des erreurs structurées</span>
+ └── main.go                  <span class="note">// Initialisation et Démarrage du serveur</span>
+        </pre>
+    </div>
+
+    <h2>3. 💥 Robustesse : Gestion des Erreurs Uniformisée</h2>
+    <p>Toutes les erreurs de l'API doivent avoir un format cohérent.</p>
+    <div class="file-box">
+        <div class="code-title">pkg/errors/errors.go (Définition des Erreurs)</div>
+        <pre>
+package errors
+
+import "net/http"
+
+// APIError est la structure standard pour les erreurs retournées au client
+type APIError struct {
+    Status  int    `json:"status"`
+    Message string `json:"message"`
+    Code    string `json:"code,omitempty"`
+}
+
+func (e *APIError) Error() string {
+    return e.Message
+}
+
+// Erreur de validation (400)
+var ErrValidation = &APIError{
+    Status: http.StatusBadRequest, 
+    Message: "Erreur de validation des données.", 
+    Code: "VALIDATION_ERROR",
+}
+
+// Erreur Non Trouvé (404)
+var ErrNotFound = &APIError{
+    Status: http.StatusNotFound, 
+    Message: "Ressource non trouvée.", 
+    Code: "NOT_FOUND",
+}
+
+// Erreur Non Autorisé (403)
+var ErrForbidden = &APIError{
+    Status: http.StatusForbidden, 
+    Message: "Accès refusé. Rôle insuffisant.", 
+    Code: "FORBIDDEN",
+}
+        </pre>
+        <div class="code-title">delivery/http/utils/response.go (Fonction de réponse)</div>
+        <pre>
+// ...
+func RespondError(w http.ResponseWriter, err error) {
+    if apiErr, ok := err.(*errors.APIError); ok {
+        // Si c'est une erreur API structurée
+        w.WriteHeader(apiErr.Status)
+        json.NewEncoder(w).Encode(apiErr)
+    } else {
+        // Erreur serveur inconnue (500)
+        w.WriteHeader(http.StatusInternalServerError)
+        json.NewEncoder(w).Encode(map[string]interface{}{
+            "status":  http.StatusInternalServerError,
+            "message": "Erreur interne du serveur.",
+        })
+    }
+}
+        </pre>
+    </div>
+
+    <h2>4. 🔒 Sécurité Avancée : Rate Limiting et Rôles</h2>
+
+    <h3>4.1. Middleware de Taux Limite (Rate Limiting)</h3>
+    <p>Empêche les abus ou les attaques DDOS légères en limitant les requêtes par IP.</p>
+    <div class="file-box">
+        <div class="code-title">main.go (Initialisation dans le routeur)</div>
+        <pre>
+// Implémentation simple avec go-chi/host-limiter (à adapter en production)
+import "github.com/go-chi/host-limiter"
+
+// ... dans func main() ...
+limiter := hlimit.NewHostLimiter(
+    hlimit.PerIP(50, time.Minute), // 50 requêtes max par IP par minute
+    hlimit.WithErrorHandler(func(w http.ResponseWriter, r *http.Request) {
+        utils.RespondError(w, errors.NewAPIError(http.StatusTooManyRequests, "Limite de requêtes dépassée."))
+    }),
+)
+
+r := chi.NewRouter()
+r.Use(limiter.Handler) // Applique le Rate Limiter sur toutes les routes
+// ... autres middlewares ...
+        </pre>
+    </div>
+
+    <h3>4.2. Authentification et Contrôle d'Accès par Rôle (Mis à jour)</h3>
+    <p>Le middleware **RoleMiddleware** utilise les erreurs structurées :</p>
+    <div class="file-box">
+        <div class="code-title">delivery/http/middleware/auth.go (RoleMiddleware)</div>
+        <pre>
+// ...
+func RoleMiddleware(requiredRoles ...db.Role) func(next http.Handler) http.Handler {
+    return func(next http.Handler) http.Handler {
+        return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+            // ... (logique de récupération des claims du JWT) ...
+            
+            // Si le token est invalide ou manquant
+            if err != nil {
+                utils.RespondError(w, errors.ErrUnauthorized) // Erreur 401 structurée
+                return
+            }
+            
+            // ... (logique de vérification du rôle) ...
+
+            if !isAuthorized {
+                utils.RespondError(w, errors.ErrForbidden) // Erreur 403 structurée
+                return
+            }
+
+            next.ServeHTTP(w, r)
+        })
+    }
+}
+        </pre>
+    </div>
+
+    <h2>5. 🔄 CRUD Avancé : Pagination et Filtrage Universel</h2>
+    <p>Pour des requêtes de liste efficaces, quel que soit le modèle (User, Product, Post).</p>
+
+    <h3>5.1. DTO de Requête Générique</h3>
+    <div class="file-box">
+        <div class="code-title">delivery/http/handlers/common_dtos.go</div>
+        <pre>
+package handlers
+
+// ListQuery DTO pour la pagination, le tri et le filtrage (Query Params)
+type ListQuery struct {
+    Page  int    `json:"page" validate:"min=1"`
+    Limit int    `json:"limit" validate:"min=1,max=100"`
+    Sort  string `json:"sort"` // Ex: "createdAt:desc"
+    Filter string `json:"filter"` // Ex: "role:ADMIN,isActive:true"
+}
+
+// Utilisation dans le Handler
+// query := parseListQuery(r) // Helper qui lit les params de l'URL
+
+// Dans le Service, cela se traduit par :
+// client.User.FindMany(
+//     db.User.Role.Equals(db.Role(filter.Role)), // Filtrage
+// ).Take(query.Limit).Skip((query.Page - 1) * query.Limit).Exec(ctx) // Pagination
+        </pre>
+    </div>
+
+    <h2>6. 🧪 Tests : Assurer la Stabilité du Code</h2>
+    <p>La **Clean Architecture** rend les tests unitaires simples car la logique métier est isolée.</p>
+
+    <h3>6.1. Tests Unitaires de Logique Métier (Services)</h3>
+    <p>Testez les `services/` **sans** dépendre du client Prisma (base de données). Pour cela, vous utilisez l'Interface `UserRepository` (du dossier `domain/`) et vous créez un **Mock** (une fausse implémentation) de cette interface dans votre test.</p>
+    <div class="file-box">
+        <div class="code-title">application/user_service_test.go</div>
+        <pre>
+package application_test
+
+import (
+    "context"
+    "testing"
+    "api/internal/domain"
+    "api/internal/application"
+    // Mock Repository (doit être créé manuellement ou avec un outil)
+)
+
+func TestCreateUser(t *testing.T) {
+    // 1. Arrange: Créer un Mock de UserRepository
+    mockRepo := &MockUserRepository{}
+    mockRepo.On("Create", mock.Anything, mock.Anything).Return(&domain.User{ID: "123"}, nil)
+    
+    // 2. Initialiser le Service avec le Mock
+    userService := application.NewUserService(mockRepo)
+    
+    // 3. Act: Appeler la méthode à tester
+    user, err := userService.CreateUser(context.Background(), "test@test.com", "pass123")
+    
+    // 4. Assert: Vérifier le résultat
+    if err != nil {
+        t.Errorf("CreateUser a échoué: %v", err)
+    }
+    if user.ID != "123" {
+        t.Errorf("ID inattendu: %s", user.ID)
+    }
+    mockRepo.AssertExpectations(t) // Vérifie que la méthode Create a bien été appelée
+}
+        </pre>
+    </div>
+
+    <h3>6.2. Tests d'Intégration (Handlers)</h3>
+    <p>Simulez une requête HTTP sur votre routeur sans démarrer le serveur.</p>
+    <div class="file-box">
+        <div class="code-title">delivery/http/handlers/user_handler_test.go</div>
+        <pre>
+import (
+    "net/http"
+    "net/http/httptest"
+    "testing"
+    "github.com/go-chi/chi/v5"
+    // ...
+)
+
+func TestListUsersHandler(t *testing.T) {
+    // 1. Arrange: Créer un faux service à retourner
+    // mockService := ...
+    
+    // 2. Configurer le Handler
+    handler := handlers.ListUsersHandler(mockService)
+
+    // 3. Créer une fausse requête (Request et Response Recorder)
+    req, _ := http.NewRequest("GET", "/users?limit=10", nil)
+    rr := httptest.NewRecorder()
+
+    // 4. Act: Servir la requête
+    handler.ServeHTTP(rr, req)
+
+    // 5. Assert: Vérifier le code de réponse
+    if status := rr.Code; status != http.StatusOK {
+        t.Errorf("Attendu %v, Obtenu %v", http.StatusOK, status)
+    }
+    // ... Vérifier le contenu JSON ...
+}
+        </pre>
+    </div>
+
+    <h2>7. 📝 Documentation (Swagger / OpenAPI)</h2>
+    <p>Pour tout projet professionnel, la documentation est indispensable. L'outil le plus courant pour Go est <code>swaggo</code>.</p>
+    <ul>
+        <li>Installez <code>go get github.com/swaggo/swag/cmd/swag</code>.</li>
+        <li>Ajoutez des commentaires spécifiques (<code>// @Router /users [get]</code>, <code>// @Success 200 {array} models.User</code>) au-dessus de chaque handler.</li>
+        <li>Lancez <code>swag init</code> pour générer le fichier <code>docs/swagger.json</code>.</li>
+        <li>Ajoutez une route pour servir l'interface Swagger (généralement via un middleware comme <code>github.com/swaggo/http-swagger</code>).</li>
+    </ul>
+
+    <p class="warning">Ce guide est désormais complet, couvrant de l'initialisation au déploiement (via l'architecture) et la sécurité avancée, et devrait servir de base solide pour n'importe quel projet d'API REST en Go.</p>
+</body>
+</html>

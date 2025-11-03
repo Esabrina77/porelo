@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TUTO API GO/PRISMA - Chapitre 0 : Le Serveur Minimal</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; padding: 20px; background-color: #f4f4f9; }
+        h1, h2, h3 { color: #333; border-bottom: 2px solid #ccc; padding-bottom: 5px; }
+        code { padding: 2px 4px; border-radius: 3px; }
+        pre { background-color: #272822; color: #f8f8f2; padding: 10px; border-radius: 5px; overflow-x: auto; }
+        .command { color: #007bff; font-weight: bold; }
+        .folder { color: #008000; }
+    </style>
+</head>
+<body>
+
+    <h1>Chapitre 0 : Le Serveur Go Minimal (net/http)</h1>
+    <p>Avant d'introduire des frameworks ou une base de données, nous devons nous assurer que le moteur de base de notre API — le serveur HTTP de Go — fonctionne correctement.</p>
+
+    <h2>1. Le Fichier de Démarrage : <code>main.go</code></h2>
+    <p>Le <code>main.go</code> est le point d'entrée de notre application. Il contient la fonction <code>main()</code> qui lance le serveur.</p>
+
+    <h3>Code de base :</h3>
+    <p>Nous utilisons le package standard <code>net/http</code> pour créer un serveur simple sur le port 8080.</p>
+    <pre><code>
+// main.go
+package main
+
+import (
+	"fmt"
+	"net/http"
+)
+
+func main() {
+    // Définition d'un "handler" pour la route racine "/"
+    // Un handler est une fonction qui prend (http.ResponseWriter, *http.Request)
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		// La fonction fmt.Fprintln écrit la réponse dans le ResponseWriter (w)
+		fmt.Fprintln(w, "TEST CONNEXION OK")
+	})
+
+	// Lancement du serveur HTTP
+	// http.ListenAndServe prend l'adresse (port) et le handler par défaut (nil)
+	fmt.Println("Serveur démarré sur :8080")
+	http.ListenAndServe(":8080", nil) 
+}
+    </code></pre>
+
+    <h2>2. Exécution et Test</h2>
+    <p>Exécutez l'application dans votre terminal et vérifiez qu'elle répond correctement.</p>
+    <pre><code class="command">go run main.go</code></pre>
+    <p>Ensuite, testez-le via votre navigateur ou avec <code>curl</code> :</p>
+    <pre><code class="command">curl http://localhost:8080</code></pre>
+    <p>Vous devriez voir : <code>TEST CONNEXION OK</code>.</p>
+
+    <h2>3. Prochaine Étape : Utilisation d'un Routeur Moderne</h2>
+    <p>Bien que <code>net/http</code> soit suffisant, pour une API REST complète (avec middlewares, routes paramétrées comme <code>/products/{id}</code>), nous utiliserons un routeur plus puissant, <strong>Chi</strong>, au Chapitre 1.</p>
+
+</body>
+</html>

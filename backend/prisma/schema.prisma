@@ -1,15 +1,93 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
+// prisma/schema.prisma
+// ... (Les premières lignes generator et datasource restent les mêmes) ...
 
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
-generator client {
+generator go {
   provider = "go run github.com/steebchen/prisma-client-go"
-
+  // On spécifie où sera généré le client Go pour qu'il soit interne au projet
+  output   = "../internal/db"
 }
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+// L'énumération pour gérer les rôles
+enum Role {
+  USER
+  ADMIN
+}
+
+model User {
+  id        String    @id @default(uuid())
+  email     String    @unique
+  password  String    // Mot de passe haché (bcrypt)
+  role      Role      @default(USER) // Rôle par défaut
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  orders    Order[]   // Relation : un utilisateur peut avoir plusieurs commandes
+}
+
+model Category {
+  id        String    @id @default(uuid())
+  name      String    @unique
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  products  Product[] // Relation : une catégorie peut avoir plusieurs produits
+}
+
+model Product {
+  id          String    @id @default(uuid())
+  name        String    @unique
+  description String?
+  price       Float
+  stock       Int       @default(0)
+  imageURL    String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  // Relation optionnelle avec Category
+  categoryID  String?
+  category    Category? @relation(fields: [categoryID], references: [id])
+  
+  // Relation avec OrderItem
+  orderItems  OrderItem[]
+}
+
+enum OrderStatus {
+  PENDING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+model Order {
+  id          String      @id @default(uuid())
+  orderDate   DateTime    @default(now())
+  totalAmount Float
+  status      OrderStatus @default(PENDING)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  
+  // Relation avec User
+  userID      String
+  user        User        @relation(fields: [userID], references: [id])
+  
+  // Relation avec OrderItem
+  orderItems  OrderItem[]
+}
+
+model OrderItem {
+  id        String  @id @default(uuid())
+  quantity  Int
+  price     Float // Prix au moment de la commande
+  
+  // Relation avec Order
+  orderID   String
+  order     Order   @relation(fields: [orderID], references: [id], onDelete: Cascade)
+  
+  // Relation avec Product
+  productID String
+  product   Product @relation(fields: [productID], references: [id])
+}
+    
