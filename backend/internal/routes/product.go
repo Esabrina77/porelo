@@ -23,6 +23,7 @@ func RegisterProductRoutes(r chi.Router, client *db.PrismaClient) {
 		r.Use(middlewares.RequireRole("ADMIN"))
 		r.Post("/admin/products", handlers.CreateProductHandler(client))
 		r.Put("/admin/products/{id}", handlers.UpdateProductHandler(client))
+		r.Patch("/admin/products/{id}", handlers.PatchProductHandler(client))
 		r.Delete("/admin/products/{id}", handlers.DeleteProductHandler(client))
 	})
 }

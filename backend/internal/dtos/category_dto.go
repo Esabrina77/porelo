@@ -8,6 +8,12 @@ type CategoryRequest struct {
 	Name string `json:"name" example:"Visage" binding:"required"` // Nom de la catégorie
 }
 
+// PatchCategoryRequest DTO pour la mise à jour partielle d'une catégorie
+// @Description Permet de mettre à jour uniquement le nom d'une catégorie
+type PatchCategoryRequest struct {
+	Name *string `json:"name,omitempty" example:"Visage"` // Nom de la catégorie (optionnel)
+}
+
 // CategoryResponse DTO pour la réponse
 // @Description Informations catégorie
 type CategoryResponse struct {

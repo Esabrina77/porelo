@@ -335,3 +335,138 @@ func DeleteProduct(client *db.PrismaClient, productID string) error {
 
 	return nil
 }
+
+// PatchProduct met à jour partiellement un produit (seuls les champs fournis sont mis à jour)
+func PatchProduct(client *db.PrismaClient, productID string, req dtos.PatchProductRequest) (*dtos.ProductResponse, error) {
+	ctx := context.Background()
+
+	// Vérifier que le produit existe
+	existingProduct, err := client.Product.FindUnique(
+		db.Product.ID.Equals(productID),
+	).Exec(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("produit non trouvé")
+	}
+
+	// Préparer les options de mise à jour (seulement les champs fournis)
+	updateParams := []db.ProductSetParam{}
+
+	// Nom (si fourni)
+	if req.Name != nil {
+		// Vérifier si le nouveau nom est déjà utilisé par un autre produit
+		if *req.Name != existingProduct.Name {
+			nameExists, _ := client.Product.FindUnique(
+				db.Product.Name.Equals(*req.Name),
+			).Exec(ctx)
+			if nameExists != nil {
+				return nil, fmt.Errorf("un produit avec ce nom existe déjà")
+			}
+		}
+		updateParams = append(updateParams, db.Product.Name.Set(*req.Name))
+	}
+
+	// Description (si fournie)
+	if req.Description != nil {
+		updateParams = append(updateParams, db.Product.Description.Set(*req.Description))
+	}
+
+	// Prix (si fourni)
+	if req.Price != nil {
+		if *req.Price <= 0 {
+			return nil, fmt.Errorf("le prix doit être supérieur à 0")
+		}
+		updateParams = append(updateParams, db.Product.Price.Set(*req.Price))
+	}
+
+	// Stock (si fourni)
+	if req.Stock != nil {
+		if *req.Stock < 0 {
+			return nil, fmt.Errorf("le stock ne peut pas être négatif")
+		}
+		updateParams = append(updateParams, db.Product.Stock.Set(*req.Stock))
+	}
+
+	// ImageURL (si fournie)
+	if req.ImageURL != nil {
+		updateParams = append(updateParams, db.Product.ImageURL.Set(*req.ImageURL))
+	}
+
+	// CategoryID (si fourni)
+	if req.CategoryID != nil {
+		// Si CategoryID est une chaîne vide ou null, on supprime la catégorie
+		if *req.CategoryID == "" {
+			updateParams = append(updateParams, db.Product.Category.Unlink())
+		} else {
+			// Vérifier que la catégorie existe
+			category, err := client.Category.FindUnique(
+				db.Category.ID.Equals(*req.CategoryID),
+			).Exec(ctx)
+			if err != nil || category == nil {
+				return nil, fmt.Errorf("catégorie non trouvée")
+			}
+			updateParams = append(updateParams, db.Product.Category.Link(db.Category.ID.Equals(*req.CategoryID)))
+		}
+	}
+
+	// Si aucun champ n'est fourni, retourner une erreur
+	if len(updateParams) == 0 {
+		return nil, fmt.Errorf("au moins un champ doit être fourni pour la mise à jour")
+	}
+
+	// Mettre à jour le produit
+	product, err := client.Product.FindUnique(
+		db.Product.ID.Equals(productID),
+	).Update(updateParams...).Exec(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("erreur lors de la mise à jour du produit: %w", err)
+	}
+
+	// Récupérer le produit avec la catégorie
+	product, err = client.Product.FindUnique(
+		db.Product.ID.Equals(productID),
+	).With(
+		db.Product.Category.Fetch(),
+	).Exec(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("erreur lors de la récupération du produit: %w", err)
+	}
+
+	// Convertir en DTO
+	var description string
+	if desc, ok := product.Description(); ok {
+		description = string(desc)
+	}
+
+	var imageURL string
+	if img, ok := product.ImageURL(); ok {
+		imageURL = string(img)
+	}
+
+	var categoryID *string
+	var category *dtos.CategoryResponse
+
+	if catID, ok := product.CategoryID(); ok {
+		categoryID = &catID
+		if cat, ok := product.Category(); ok && cat != nil {
+			category = &dtos.CategoryResponse{
+				ID:        cat.ID,
+				Name:      cat.Name,
+				CreatedAt: cat.CreatedAt,
+				UpdatedAt: cat.UpdatedAt,
+			}
+		}
+	}
+
+	return &dtos.ProductResponse{
+		ID:          product.ID,
+		Name:        product.Name,
+		Description: description,
+		Price:       product.Price,
+		Stock:       product.Stock,
+		ImageURL:    imageURL,
+		CategoryID:  categoryID,
+		Category:    category,
+		CreatedAt:   product.CreatedAt,
+		UpdatedAt:   product.UpdatedAt,
+	}, nil
+}

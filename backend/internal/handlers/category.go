@@ -211,3 +211,56 @@ func DeleteCategoryHandler(client *db.PrismaClient) http.HandlerFunc {
 		w.WriteHeader(http.StatusNoContent)
 	}
 }
+
+// PatchCategoryHandler gère la mise à jour partielle d'une catégorie (admin only)
+// @Summary      Mettre à jour partiellement une catégorie
+// @Description  Met à jour uniquement le nom d'une catégorie (admin uniquement). Exemple: changer uniquement le nom sans recréer la catégorie.
+// @Tags         Categories
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        id       path      string                  true  "ID de la catégorie"
+// @Param        request  body      dtos.PatchCategoryRequest  true  "Champs à mettre à jour (nom optionnel)"
+// @Success      200      {object}  dtos.CategoryResponse
+// @Failure      400      {object}  docs.ErrorResponse
+// @Failure      401      {object}  docs.ErrorResponse
+// @Failure      403      {object}  docs.ErrorResponse  "Accès refusé - Admin requis"
+// @Failure      404      {object}  docs.ErrorResponse
+// @Failure      409      {object}  docs.ErrorResponse
+// @Failure      500      {object}  docs.ErrorResponse
+// @Router       /admin/categories/{id} [patch]
+func PatchCategoryHandler(client *db.PrismaClient) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		categoryID := chi.URLParam(r, "id")
+		if categoryID == "" {
+			utils.RespondError(w, http.StatusBadRequest, "ID de catégorie requis")
+			return
+		}
+
+		var req dtos.PatchCategoryRequest
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			utils.RespondError(w, http.StatusBadRequest, "JSON invalide")
+			return
+		}
+
+		category, err := services.PatchCategory(client, categoryID, req)
+		if err != nil {
+			if err.Error() == "catégorie non trouvée" {
+				utils.RespondError(w, http.StatusNotFound, err.Error())
+				return
+			}
+			if err.Error() == "une catégorie avec ce nom existe déjà" {
+				utils.RespondError(w, http.StatusConflict, err.Error())
+				return
+			}
+			if err.Error() == "le nom de la catégorie ne peut pas être vide" || err.Error() == "au moins un champ doit être fourni pour la mise à jour" {
+				utils.RespondError(w, http.StatusBadRequest, err.Error())
+				return
+			}
+			utils.RespondError(w, http.StatusInternalServerError, "Erreur lors de la mise à jour de la catégorie")
+			return
+		}
+
+		utils.RespondJSON(w, http.StatusOK, category)
+	}
+}

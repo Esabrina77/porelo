@@ -238,3 +238,64 @@ func DeleteProductHandler(client *db.PrismaClient) http.HandlerFunc {
 		w.WriteHeader(http.StatusNoContent)
 	}
 }
+
+// PatchProductHandler gère la mise à jour partielle d'un produit (admin only)
+// @Summary      Mettre à jour partiellement un produit
+// @Description  Met à jour uniquement les champs fournis d'un produit (admin uniquement). Exemple: changer uniquement l'image sans modifier les autres champs.
+// @Tags         Products
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        id       path      string                true  "ID du produit"
+// @Param        request  body      dtos.PatchProductRequest  true  "Champs à mettre à jour (tous optionnels)"
+// @Success      200      {object}  dtos.ProductResponse
+// @Failure      400      {object}  docs.ErrorResponse
+// @Failure      401      {object}  docs.ErrorResponse
+// @Failure      403      {object}  docs.ErrorResponse  "Accès refusé - Admin requis"
+// @Failure      404      {object}  docs.ErrorResponse
+// @Failure      409      {object}  docs.ErrorResponse
+// @Failure      500      {object}  docs.ErrorResponse
+// @Router       /admin/products/{id} [patch]
+func PatchProductHandler(client *db.PrismaClient) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		productID := chi.URLParam(r, "id")
+		if productID == "" {
+			utils.RespondError(w, http.StatusBadRequest, "ID de produit requis")
+			return
+		}
+
+		var req dtos.PatchProductRequest
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			utils.RespondError(w, http.StatusBadRequest, "JSON invalide")
+			return
+		}
+
+		product, err := services.PatchProduct(client, productID, req)
+		if err != nil {
+			if err.Error() == "produit non trouvé" {
+				utils.RespondError(w, http.StatusNotFound, err.Error())
+				return
+			}
+			if err.Error() == "un produit avec ce nom existe déjà" {
+				utils.RespondError(w, http.StatusConflict, err.Error())
+				return
+			}
+			if err.Error() == "catégorie non trouvée" {
+				utils.RespondError(w, http.StatusBadRequest, err.Error())
+				return
+			}
+			if err.Error() == "le prix doit être supérieur à 0" || err.Error() == "le stock ne peut pas être négatif" {
+				utils.RespondError(w, http.StatusBadRequest, err.Error())
+				return
+			}
+			if err.Error() == "au moins un champ doit être fourni pour la mise à jour" {
+				utils.RespondError(w, http.StatusBadRequest, err.Error())
+				return
+			}
+			utils.RespondError(w, http.StatusInternalServerError, "Erreur lors de la mise à jour du produit")
+			return
+		}
+
+		utils.RespondJSON(w, http.StatusOK, product)
+	}
+}

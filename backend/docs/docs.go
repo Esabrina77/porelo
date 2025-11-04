@@ -326,6 +326,86 @@ const docTemplate = `{
                         }
                     }
                 }
+            },
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Met à jour uniquement le nom d'une catégorie (admin uniquement). Exemple: changer uniquement le nom sans recréer la catégorie.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Categories"
+                ],
+                "summary": "Mettre à jour partiellement une catégorie",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID de la catégorie",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Champs à mettre à jour (nom optionnel)",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dtos.PatchCategoryRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dtos.CategoryResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/docs.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/docs.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Accès refusé - Admin requis",
+                        "schema": {
+                            "$ref": "#/definitions/docs.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/docs.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/docs.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/docs.ErrorResponse"
+                        }
+                    }
+                }
             }
         },
         "/admin/orders": {
@@ -647,6 +727,86 @@ const docTemplate = `{
                     },
                     "404": {
                         "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/docs.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/docs.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Met à jour uniquement les champs fournis d'un produit (admin uniquement). Exemple: changer uniquement l'image sans modifier les autres champs.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Products"
+                ],
+                "summary": "Mettre à jour partiellement un produit",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID du produit",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Champs à mettre à jour (tous optionnels)",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dtos.PatchProductRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dtos.ProductResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/docs.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/docs.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Accès refusé - Admin requis",
+                        "schema": {
+                            "$ref": "#/definitions/docs.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/docs.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
                         "schema": {
                             "$ref": "#/definitions/docs.ErrorResponse"
                         }
@@ -1478,6 +1638,53 @@ const docTemplate = `{
                     "description": "ID de l'utilisateur",
                     "type": "string",
                     "example": "550e8400-e29b-41d4-a716-446655440000"
+                }
+            }
+        },
+        "dtos.PatchCategoryRequest": {
+            "description": "Permet de mettre à jour uniquement le nom d'une catégorie",
+            "type": "object",
+            "properties": {
+                "name": {
+                    "description": "Nom de la catégorie (optionnel)",
+                    "type": "string",
+                    "example": "Visage"
+                }
+            }
+        },
+        "dtos.PatchProductRequest": {
+            "description": "Permet de mettre à jour uniquement certains champs d'un produit (tous les champs sont optionnels)",
+            "type": "object",
+            "properties": {
+                "categoryID": {
+                    "description": "ID de la catégorie (optionnel, peut être null pour supprimer la catégorie)",
+                    "type": "string",
+                    "example": "550e8400-e29b-41d4-a716-446655440000"
+                },
+                "description": {
+                    "description": "Description du produit (optionnel)",
+                    "type": "string",
+                    "example": "Crème hydratante pour peau sensible"
+                },
+                "imageURL": {
+                    "description": "URL de l'image du produit (optionnel)",
+                    "type": "string",
+                    "example": "https://example.com/image.jpg"
+                },
+                "name": {
+                    "description": "Nom du produit (optionnel)",
+                    "type": "string",
+                    "example": "Crème hydratante"
+                },
+                "price": {
+                    "description": "Prix en euros (optionnel, doit être \u003e 0 si fourni)",
+                    "type": "number",
+                    "example": 29.99
+                },
+                "stock": {
+                    "description": "Quantité en stock (optionnel, doit être \u003e= 0 si fourni)",
+                    "type": "integer",
+                    "example": 50
                 }
             }
         },

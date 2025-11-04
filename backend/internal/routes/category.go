@@ -18,6 +18,7 @@ func RegisterCategoryRoutes(r chi.Router, client *db.PrismaClient) {
 		r.Get("/admin/categories/{id}", handlers.GetCategoryHandler(client))
 		r.Post("/admin/categories", handlers.CreateCategoryHandler(client))
 		r.Put("/admin/categories/{id}", handlers.UpdateCategoryHandler(client))
+		r.Patch("/admin/categories/{id}", handlers.PatchCategoryHandler(client))
 		r.Delete("/admin/categories/{id}", handlers.DeleteCategoryHandler(client))
 	})
 }

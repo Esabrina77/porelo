@@ -152,6 +152,44 @@ definitions:
         example: 550e8400-e29b-41d4-a716-446655440000
         type: string
     type: object
+  dtos.PatchCategoryRequest:
+    description: Permet de mettre à jour uniquement le nom d'une catégorie
+    properties:
+      name:
+        description: Nom de la catégorie (optionnel)
+        example: Visage
+        type: string
+    type: object
+  dtos.PatchProductRequest:
+    description: Permet de mettre à jour uniquement certains champs d'un produit (tous
+      les champs sont optionnels)
+    properties:
+      categoryID:
+        description: ID de la catégorie (optionnel, peut être null pour supprimer
+          la catégorie)
+        example: 550e8400-e29b-41d4-a716-446655440000
+        type: string
+      description:
+        description: Description du produit (optionnel)
+        example: Crème hydratante pour peau sensible
+        type: string
+      imageURL:
+        description: URL de l'image du produit (optionnel)
+        example: https://example.com/image.jpg
+        type: string
+      name:
+        description: Nom du produit (optionnel)
+        example: Crème hydratante
+        type: string
+      price:
+        description: Prix en euros (optionnel, doit être > 0 si fourni)
+        example: 29.99
+        type: number
+      stock:
+        description: Quantité en stock (optionnel, doit être >= 0 si fourni)
+        example: 50
+        type: integer
+    type: object
   dtos.ProductRequest:
     description: Informations produit pour création/modification
     properties:
@@ -457,6 +495,59 @@ paths:
       summary: Détails d'une catégorie
       tags:
       - Categories
+    patch:
+      consumes:
+      - application/json
+      description: 'Met à jour uniquement le nom d''une catégorie (admin uniquement).
+        Exemple: changer uniquement le nom sans recréer la catégorie.'
+      parameters:
+      - description: ID de la catégorie
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Champs à mettre à jour (nom optionnel)
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dtos.PatchCategoryRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dtos.CategoryResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/docs.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/docs.ErrorResponse'
+        "403":
+          description: Accès refusé - Admin requis
+          schema:
+            $ref: '#/definitions/docs.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/docs.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/docs.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/docs.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Mettre à jour partiellement une catégorie
+      tags:
+      - Categories
     put:
       consumes:
       - application/json
@@ -669,6 +760,60 @@ paths:
       security:
       - BearerAuth: []
       summary: Supprimer un produit
+      tags:
+      - Products
+    patch:
+      consumes:
+      - application/json
+      description: 'Met à jour uniquement les champs fournis d''un produit (admin
+        uniquement). Exemple: changer uniquement l''image sans modifier les autres
+        champs.'
+      parameters:
+      - description: ID du produit
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Champs à mettre à jour (tous optionnels)
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dtos.PatchProductRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dtos.ProductResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/docs.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/docs.ErrorResponse'
+        "403":
+          description: Accès refusé - Admin requis
+          schema:
+            $ref: '#/definitions/docs.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/docs.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/docs.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/docs.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Mettre à jour partiellement un produit
       tags:
       - Products
     put:

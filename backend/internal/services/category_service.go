@@ -131,3 +131,53 @@ func DeleteCategory(client *db.PrismaClient, categoryID string) error {
 
 	return nil
 }
+
+// PatchCategory met à jour partiellement une catégorie (seul le nom peut être mis à jour)
+func PatchCategory(client *db.PrismaClient, categoryID string, req dtos.PatchCategoryRequest) (*dtos.CategoryResponse, error) {
+	ctx := context.Background()
+
+	// Vérifier que la catégorie existe
+	existingCategory, err := client.Category.FindUnique(
+		db.Category.ID.Equals(categoryID),
+	).Exec(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("catégorie non trouvée")
+	}
+
+	// Si aucun champ n'est fourni, retourner une erreur
+	if req.Name == nil {
+		return nil, fmt.Errorf("au moins un champ doit être fourni pour la mise à jour")
+	}
+
+	// Vérifier si le nouveau nom est déjà utilisé par une autre catégorie
+	if *req.Name != existingCategory.Name {
+		nameExists, _ := client.Category.FindUnique(
+			db.Category.Name.Equals(*req.Name),
+		).Exec(ctx)
+		if nameExists != nil {
+			return nil, fmt.Errorf("une catégorie avec ce nom existe déjà")
+		}
+	}
+
+	// Validation basique
+	if *req.Name == "" {
+		return nil, fmt.Errorf("le nom de la catégorie ne peut pas être vide")
+	}
+
+	// Mettre à jour la catégorie
+	category, err := client.Category.FindUnique(
+		db.Category.ID.Equals(categoryID),
+	).Update(
+		db.Category.Name.Set(*req.Name),
+	).Exec(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("erreur lors de la mise à jour de la catégorie: %w", err)
+	}
+
+	return &dtos.CategoryResponse{
+		ID:        category.ID,
+		Name:      category.Name,
+		CreatedAt: category.CreatedAt,
+		UpdatedAt: category.UpdatedAt,
+	}, nil
+}

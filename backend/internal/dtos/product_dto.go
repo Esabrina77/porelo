@@ -13,6 +13,17 @@ type ProductRequest struct {
 	CategoryID  string  `json:"categoryID" example:"550e8400-e29b-41d4-a716-446655440000"` // ID de la catégorie (optionnel)
 }
 
+// PatchProductRequest DTO pour la mise à jour partielle d'un produit
+// @Description Permet de mettre à jour uniquement certains champs d'un produit (tous les champs sont optionnels)
+type PatchProductRequest struct {
+	Name        *string  `json:"name,omitempty" example:"Crème hydratante"`                           // Nom du produit (optionnel)
+	Description *string  `json:"description,omitempty" example:"Crème hydratante pour peau sensible"` // Description du produit (optionnel)
+	Price       *float64 `json:"price,omitempty" example:"29.99"`                                     // Prix en euros (optionnel, doit être > 0 si fourni)
+	Stock       *int     `json:"stock,omitempty" example:"50"`                                        // Quantité en stock (optionnel, doit être >= 0 si fourni)
+	ImageURL    *string  `json:"imageURL,omitempty" example:"https://example.com/image.jpg"`          // URL de l'image du produit (optionnel)
+	CategoryID  *string  `json:"categoryID,omitempty" example:"550e8400-e29b-41d4-a716-446655440000"` // ID de la catégorie (optionnel, peut être null pour supprimer la catégorie)
+}
+
 // ProductResponse DTO pour la réponse
 // @Description Informations produit avec catégorie
 type ProductResponse struct {

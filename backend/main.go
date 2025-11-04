@@ -66,6 +66,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/cors"
 	httpSwagger "github.com/swaggo/http-swagger"
 
 	_ "api/docs" // Documentation Swagger générée - nécessaire pour initialiser SwaggerInfo
@@ -80,8 +81,23 @@ func main() {
 	}
 
 	r := chi.NewRouter()
+
+	// Middleware de base
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
+
+	// Configuration CORS pour permettre les requêtes depuis le frontend et mobile
+	r.Use(cors.Handler(cors.Options{
+		// Origines autorisées :
+		// - Frontend web (Nuxt, React, etc.)
+		// - React Native : "*" car les apps natives n'ont pas d'origine web classique
+		AllowedOrigins:   []string{"*"}, // Pour développement : accepte toutes les origines. En production, spécifiez vos domaines exacts
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"},
+		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
+		ExposedHeaders:   []string{"Link"},
+		AllowCredentials: true,
+		MaxAge:           300, // Durée de cache pour les pré-requêtes OPTIONS (en secondes)
+	}))
 
 	// Route Swagger pour la documentation
 	r.Get("/swagger/*", httpSwagger.Handler(
@@ -89,49 +105,11 @@ func main() {
 		httpSwagger.DocExpansion("list"),
 	))
 
-	
-
-	
-
-	
-
-	// Enregistrez les routes des commandes
-routes.RegisterOrderRoutes(r, client)
-routes.RegisterCategoryRoutes(r, client)
-routes.RegisterProductRoutes(r, client)
+	// Enregistrement des routes
 	routes.RegisterAuthRoutes(r, client)
-
-	
-
-	
-
-	// Enregistrez les routes des commandes
-routes.RegisterOrderRoutes(r, client)
-routes.RegisterCategoryRoutes(r, client)
 	routes.RegisterProductRoutes(r, client)
-
-	
-
-	// Enregistrez les routes des commandes
-routes.RegisterOrderRoutes(r, client)
 	routes.RegisterCategoryRoutes(r, client)
-
-	// Enregistrez les routes des commandes
 	routes.RegisterOrderRoutes(r, client)
-
-		
-
-	
-
-	
-
-	// Enregistrez les routes des commandes
-routes.RegisterOrderRoutes(r, client)
-routes.RegisterCategoryRoutes(r, client)
-routes.RegisterProductRoutes(r, client)
-routes.RegisterAuthRoutes(r, client)
-
-	
 	routes.RegisterUserRoutes(r, client)
 
 	port := os.Getenv("PORT")
