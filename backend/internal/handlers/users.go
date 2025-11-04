@@ -10,6 +10,7 @@ import (
 	"api/internal/db"
 	"api/internal/docs"
 	"api/internal/dtos"
+	"api/internal/middlewares"
 	"api/internal/services"
 	"api/internal/utils"
 )
@@ -67,19 +68,36 @@ func CreateUser(client *db.PrismaClient) http.HandlerFunc {
 
 // GetUserHandler Handler pour GET /user/{id}
 // @Summary      Récupérer un utilisateur
-// @Description  Récupère les informations d'un utilisateur par son ID
+// @Description  Récupère les informations d'un utilisateur par son ID. L'utilisateur peut voir son propre profil, l'admin peut voir n'importe quel profil.
 // @Tags         Users
 // @Accept       json
 // @Produce      json
+// @Security     BearerAuth
 // @Param        id   path      string  true  "ID de l'utilisateur"
 // @Success      200  {object}  dtos.UserResponse
+// @Failure      401  {object}  docs.ErrorResponse
+// @Failure      403  {object}  docs.ErrorResponse
 // @Failure      404  {object}  docs.ErrorResponse
 // @Failure      500  {object}  docs.ErrorResponse
 // @Router       /user/{id} [get]
 func GetUserHandler(client *db.PrismaClient) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		userID := chi.URLParam(r, "id")
-		user, err := services.GetUserByID(client, userID)
+		// Récupérer l'utilisateur connecté depuis le contexte
+		claims, ok := middlewares.GetUserClaims(r)
+		if !ok {
+			utils.RespondError(w, http.StatusUnauthorized, "Non authentifié")
+			return
+		}
+
+		targetUserID := chi.URLParam(r, "id")
+
+		// Vérifier que l'utilisateur peut voir ce profil (soi-même ou admin)
+		if claims.UserID != targetUserID && claims.Role != "ADMIN" {
+			utils.RespondError(w, http.StatusForbidden, "Vous ne pouvez voir que votre propre profil")
+			return
+		}
+
+		user, err := services.GetUserByID(client, targetUserID)
 		if err != nil {
 			utils.RespondError(w, http.StatusInternalServerError, "Erreur interne")
 			return
@@ -101,15 +119,18 @@ func GetUserHandler(client *db.PrismaClient) http.HandlerFunc {
 	}
 }
 
-// GetAllUsersHandler Handler pour GET /users
-// @Summary      Liste tous les utilisateurs
-// @Description  Récupère la liste de tous les utilisateurs
+// GetAllUsersHandler Handler pour GET /admin/users
+// @Summary      Liste tous les utilisateurs (Admin uniquement)
+// @Description  Récupère la liste de tous les utilisateurs. Réservé aux administrateurs.
 // @Tags         Users
 // @Accept       json
 // @Produce      json
+// @Security     BearerAuth
 // @Success      200  {array}   dtos.UserResponse
+// @Failure      401  {object}  docs.ErrorResponse
+// @Failure      403  {object}  docs.ErrorResponse
 // @Failure      500  {object}  docs.ErrorResponse
-// @Router       /users [get]
+// @Router       /admin/users [get]
 func GetAllUsersHandler(client *db.PrismaClient) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		users, err := services.GetAllUsers(client)
@@ -135,19 +156,36 @@ func GetAllUsersHandler(client *db.PrismaClient) http.HandlerFunc {
 
 // UpdateUserHandler Handler pour PUT /user/{id}
 // @Summary      Mettre à jour un utilisateur
-// @Description  Met à jour les informations d'un utilisateur
+// @Description  Met à jour les informations d'un utilisateur. L'utilisateur peut modifier son propre profil, l'admin peut modifier n'importe quel profil.
 // @Tags         Users
 // @Accept       json
 // @Produce      json
+// @Security     BearerAuth
 // @Param        id       path      string             true  "ID de l'utilisateur"
 // @Param        request  body      dtos.UserRequest  true  "Nouvelles informations"
 // @Success      200      {object}  dtos.UserResponse
 // @Failure      400      {object}  docs.ErrorResponse
+// @Failure      401      {object}  docs.ErrorResponse
+// @Failure      403      {object}  docs.ErrorResponse
 // @Failure      500      {object}  docs.ErrorResponse
 // @Router       /user/{id} [put]
 func UpdateUserHandler(client *db.PrismaClient) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		userID := chi.URLParam(r, "id")
+		// Récupérer l'utilisateur connecté depuis le contexte
+		claims, ok := middlewares.GetUserClaims(r)
+		if !ok {
+			utils.RespondError(w, http.StatusUnauthorized, "Non authentifié")
+			return
+		}
+
+		targetUserID := chi.URLParam(r, "id")
+
+		// Vérifier que l'utilisateur peut modifier ce profil (soi-même ou admin)
+		if claims.UserID != targetUserID && claims.Role != "ADMIN" {
+			utils.RespondError(w, http.StatusForbidden, "Vous ne pouvez modifier que votre propre profil")
+			return
+		}
+
 		var req dtos.UserRequest
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 			utils.RespondError(w, http.StatusBadRequest, "JSON invalide")
@@ -159,7 +197,7 @@ func UpdateUserHandler(client *db.PrismaClient) http.HandlerFunc {
 			return
 		}
 
-		user, err := services.UpdateUser(client, userID, req.Email, req.Password)
+		user, err := services.UpdateUser(client, targetUserID, req.Email, req.Password)
 		if err != nil {
 			utils.RespondError(w, http.StatusInternalServerError, "Erreur lors de la mise à jour")
 			return
@@ -177,21 +215,24 @@ func UpdateUserHandler(client *db.PrismaClient) http.HandlerFunc {
 	}
 }
 
-// DeleteUserHandler Handler pour DELETE /user/{id}
-// @Summary      Supprimer un utilisateur
-// @Description  Supprime un utilisateur par son ID
+// DeleteUserHandler Handler pour DELETE /admin/user/{id}
+// @Summary      Supprimer un utilisateur (Admin uniquement)
+// @Description  Supprime un utilisateur par son ID. Réservé aux administrateurs.
 // @Tags         Users
 // @Accept       json
 // @Produce      json
+// @Security     BearerAuth
 // @Param        id   path      string  true  "ID de l'utilisateur"
 // @Success      204  "No Content"
+// @Failure      401  {object}  docs.ErrorResponse
+// @Failure      403  {object}  docs.ErrorResponse
 // @Failure      500  {object}  docs.ErrorResponse
-// @Router       /user/{id} [delete]
+// @Router       /admin/user/{id} [delete]
 func DeleteUserHandler(client *db.PrismaClient) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userID := chi.URLParam(r, "id")
 		if err := services.DeleteUser(client, userID); err != nil {
-			http.Error(w, "Erreur interne", http.StatusInternalServerError)
+			utils.RespondError(w, http.StatusInternalServerError, "Erreur lors de la suppression")
 			return
 		}
 		w.WriteHeader(http.StatusNoContent)
