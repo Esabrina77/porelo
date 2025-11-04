@@ -83,8 +83,20 @@ func CreateOrder(client *db.PrismaClient, userID string, req dtos.CreateOrderReq
 			return nil, fmt.Errorf("erreur lors de la création de l'item de commande: %w", err)
 		}
 
-		// Mettre à jour le stock
-		newStock := itemData.Stock - itemData.Quantity
+		// Mettre à jour le stock - récupérer le stock actuel pour éviter les problèmes de concurrence
+		product, err := client.Product.FindUnique(
+			db.Product.ID.Equals(itemData.ProductID),
+		).Exec(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("erreur lors de la récupération du produit pour mise à jour du stock: %w", err)
+		}
+
+		// Vérifier à nouveau le stock avant de mettre à jour (protection contre la concurrence)
+		if product.Stock < itemData.Quantity {
+			return nil, fmt.Errorf("stock insuffisant pour le produit %s (stock disponible: %d, demandé: %d)", product.Name, product.Stock, itemData.Quantity)
+		}
+
+		newStock := product.Stock - itemData.Quantity
 		_, err = client.Product.FindUnique(
 			db.Product.ID.Equals(itemData.ProductID),
 		).Update(

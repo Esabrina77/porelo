@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
 
 	"api/internal/db"
 	"api/internal/docs"
@@ -17,25 +18,61 @@ import (
 var _ = docs.ErrorResponse{}
 
 // GetAllProductsHandler gère la récupération de tous les produits (authentifié)
+// Supporte la pagination via les query params ?page=1&limit=10
 // @Summary      Liste tous les produits
-// @Description  Récupère la liste de tous les produits disponibles avec leurs catégories (authentification requise)
+// @Description  Récupère la liste de tous les produits disponibles avec leurs catégories (authentification requise). Supporte la pagination via ?page=1&limit=10
 // @Tags         Products
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
-// @Success      200  {array}   dtos.ProductResponse
+// @Param        page   query     int     false  "Numéro de page (défaut: 1)"
+// @Param        limit  query     int     false  "Nombre d'éléments par page (défaut: 10, max: 100)"
+// @Success      200  {object}  dtos.PaginatedProductsResponse
+// @Success      200  {array}   dtos.ProductResponse  "Si page et limit ne sont pas fournis"
 // @Failure      401  {object}  docs.ErrorResponse
 // @Failure      500  {object}  docs.ErrorResponse
 // @Router       /products [get]
 func GetAllProductsHandler(client *db.PrismaClient) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		products, err := services.GetAllProducts(client)
+		// Récupérer les paramètres de pagination
+		pageStr := r.URL.Query().Get("page")
+		limitStr := r.URL.Query().Get("limit")
+
+		// Si pas de paramètres de pagination, retourner tous les produits (compatibilité)
+		if pageStr == "" && limitStr == "" {
+			products, err := services.GetAllProducts(client)
+			if err != nil {
+				utils.RespondError(w, http.StatusInternalServerError, "Erreur lors de la récupération des produits")
+				return
+			}
+			utils.RespondJSON(w, http.StatusOK, products)
+			return
+		}
+
+		// Parser les paramètres de pagination
+		page := 1
+		limit := 10
+
+		if pageStr != "" {
+			if p, err := strconv.Atoi(pageStr); err == nil && p > 0 {
+				page = p
+			}
+		}
+
+		if limitStr != "" {
+			if l, err := strconv.Atoi(limitStr); err == nil && l > 0 {
+				limit = l
+			}
+		}
+
+		// Récupérer les produits paginés
+		result, err := services.GetProductsPaginated(client, page, limit)
 		if err != nil {
 			utils.RespondError(w, http.StatusInternalServerError, "Erreur lors de la récupération des produits")
 			return
 		}
 
-		utils.RespondJSON(w, http.StatusOK, products)
+		utils.RespondJSON(w, http.StatusOK, result)
 	}
 }
 

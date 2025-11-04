@@ -820,6 +820,107 @@ const docTemplate = `{
                 }
             }
         },
+        "/admin/user/{id}": {
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Supprime un utilisateur par son ID. Réservé aux administrateurs.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Supprimer un utilisateur (Admin uniquement)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID de l'utilisateur",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/docs.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/docs.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/docs.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/users": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Récupère la liste de tous les utilisateurs. Réservé aux administrateurs.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Liste tous les utilisateurs (Admin uniquement)",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dtos.UserResponse"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/docs.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/docs.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/docs.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/auth/login": {
             "post": {
                 "description": "Authentifie un utilisateur et retourne un token JWT",
@@ -1124,7 +1225,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Récupère la liste de tous les produits disponibles avec leurs catégories (authentification requise)",
+                "description": "Récupère la liste de tous les produits disponibles avec leurs catégories (authentification requise). Supporte la pagination via ?page=1\u0026limit=10",
                 "consumes": [
                     "application/json"
                 ],
@@ -1135,9 +1236,23 @@ const docTemplate = `{
                     "Products"
                 ],
                 "summary": "Liste tous les produits",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Numéro de page (défaut: 1)",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Nombre d'éléments par page (défaut: 10, max: 100)",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Si page et limit ne sont pas fournis",
                         "schema": {
                             "type": "array",
                             "items": {
@@ -1221,9 +1336,335 @@ const docTemplate = `{
                 }
             }
         },
+        "/products/{productID}/reviews": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Récupère tous les avis d'un produit avec statistiques (moyenne, total)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Reviews"
+                ],
+                "summary": "Liste des avis d'un produit",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID du produit",
+                        "name": "productID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dtos.ProductReviewsResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/docs.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/docs.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/docs.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/docs.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Permet à un utilisateur authentifié de laisser un avis (note et commentaire) sur un produit",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Reviews"
+                ],
+                "summary": "Créer un avis pour un produit",
+                "parameters": [
+                    {
+                        "description": "Données de l'avis",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dtos.CreateReviewRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/dtos.ReviewResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/docs.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/docs.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/docs.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/docs.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/products/{productID}/reviews/me": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Récupère l'avis de l'utilisateur connecté pour un produit spécifique",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Reviews"
+                ],
+                "summary": "Avis de l'utilisateur pour un produit",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID du produit",
+                        "name": "productID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dtos.ReviewResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/docs.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/docs.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Aucun avis trouvé"
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/docs.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/reviews/{reviewID}": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Permet à un utilisateur de modifier son propre avis",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Reviews"
+                ],
+                "summary": "Mettre à jour un avis",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID de l'avis",
+                        "name": "reviewID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Données de mise à jour",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dtos.UpdateReviewRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dtos.ReviewResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/docs.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/docs.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/docs.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/docs.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/docs.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Permet à un utilisateur de supprimer son propre avis",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Reviews"
+                ],
+                "summary": "Supprimer un avis",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID de l'avis",
+                        "name": "reviewID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/docs.SuccessMessage"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/docs.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/docs.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/docs.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/docs.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/docs.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/user/{id}": {
             "get": {
-                "description": "Récupère les informations d'un utilisateur par son ID",
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Récupère les informations d'un utilisateur par son ID. L'utilisateur peut voir son propre profil, l'admin peut voir n'importe quel profil.",
                 "consumes": [
                     "application/json"
                 ],
@@ -1250,6 +1691,18 @@ const docTemplate = `{
                             "$ref": "#/definitions/dtos.UserResponse"
                         }
                     },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/docs.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/docs.ErrorResponse"
+                        }
+                    },
                     "404": {
                         "description": "Not Found",
                         "schema": {
@@ -1265,7 +1718,12 @@ const docTemplate = `{
                 }
             },
             "put": {
-                "description": "Met à jour les informations d'un utilisateur",
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Met à jour les informations d'un utilisateur. L'utilisateur peut modifier son propre profil, l'admin peut modifier n'importe quel profil.",
                 "consumes": [
                     "application/json"
                 ],
@@ -1307,38 +1765,17 @@ const docTemplate = `{
                             "$ref": "#/definitions/docs.ErrorResponse"
                         }
                     },
-                    "500": {
-                        "description": "Internal Server Error",
+                    "401": {
+                        "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/docs.ErrorResponse"
                         }
-                    }
-                }
-            },
-            "delete": {
-                "description": "Supprime un utilisateur par son ID",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Users"
-                ],
-                "summary": "Supprimer un utilisateur",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "ID de l'utilisateur",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "204": {
-                        "description": "No Content"
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/docs.ErrorResponse"
+                        }
                     },
                     "500": {
                         "description": "Internal Server Error",
@@ -1350,36 +1787,6 @@ const docTemplate = `{
             }
         },
         "/users": {
-            "get": {
-                "description": "Récupère la liste de tous les utilisateurs",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Users"
-                ],
-                "summary": "Liste tous les utilisateurs",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/dtos.UserResponse"
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/docs.ErrorResponse"
-                        }
-                    }
-                }
-            },
             "post": {
                 "description": "Crée un nouvel utilisateur (sans authentification requise)",
                 "consumes": [
@@ -1442,6 +1849,15 @@ const docTemplate = `{
                 }
             }
         },
+        "docs.SuccessMessage": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string",
+                    "example": "Opération réussie"
+                }
+            }
+        },
         "dtos.CategoryRequest": {
             "description": "Informations catégorie pour création/modification",
             "type": "object",
@@ -1496,6 +1912,33 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/dtos.OrderItemRequest"
                     }
+                }
+            }
+        },
+        "dtos.CreateReviewRequest": {
+            "description": "Avis utilisateur sur un produit",
+            "type": "object",
+            "required": [
+                "productID",
+                "rating"
+            ],
+            "properties": {
+                "comment": {
+                    "description": "Commentaire (optionnel)",
+                    "type": "string",
+                    "example": "Excellent produit, très satisfait !"
+                },
+                "productID": {
+                    "description": "ID du produit",
+                    "type": "string",
+                    "example": "550e8400-e29b-41d4-a716-446655440000"
+                },
+                "rating": {
+                    "description": "Note de 1 à 5 (obligatoire)",
+                    "type": "integer",
+                    "maximum": 5,
+                    "minimum": 1,
+                    "example": 5
                 }
             }
         },
@@ -1638,6 +2081,42 @@ const docTemplate = `{
                     "description": "ID de l'utilisateur",
                     "type": "string",
                     "example": "550e8400-e29b-41d4-a716-446655440000"
+                }
+            }
+        },
+        "dtos.PaginatedProductsResponse": {
+            "type": "object",
+            "properties": {
+                "hasNext": {
+                    "description": "Y a-t-il une page suivante ?",
+                    "type": "boolean"
+                },
+                "hasPrev": {
+                    "description": "Y a-t-il une page précédente ?",
+                    "type": "boolean"
+                },
+                "limit": {
+                    "description": "Nombre d'éléments par page",
+                    "type": "integer"
+                },
+                "page": {
+                    "description": "Page actuelle",
+                    "type": "integer"
+                },
+                "products": {
+                    "description": "Liste des produits",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dtos.ProductResponse"
+                    }
+                },
+                "total": {
+                    "description": "Nombre total de produits",
+                    "type": "integer"
+                },
+                "totalPages": {
+                    "description": "Nombre total de pages",
+                    "type": "integer"
                 }
             }
         },
@@ -1788,6 +2267,75 @@ const docTemplate = `{
                 }
             }
         },
+        "dtos.ProductReviewsResponse": {
+            "description": "Liste des avis avec statistiques (moyenne, total)",
+            "type": "object",
+            "properties": {
+                "averageRating": {
+                    "description": "Note moyenne (0-5)",
+                    "type": "number",
+                    "example": 4.5
+                },
+                "reviews": {
+                    "description": "Liste des avis",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dtos.ReviewResponse"
+                    }
+                },
+                "totalReviews": {
+                    "description": "Nombre total d'avis",
+                    "type": "integer",
+                    "example": 10
+                }
+            }
+        },
+        "dtos.ReviewResponse": {
+            "description": "Informations complètes d'un avis",
+            "type": "object",
+            "properties": {
+                "comment": {
+                    "description": "Commentaire (optionnel)",
+                    "type": "string",
+                    "example": "Excellent produit !"
+                },
+                "createdAt": {
+                    "description": "Date de création",
+                    "type": "string",
+                    "example": "2024-01-01T00:00:00Z"
+                },
+                "id": {
+                    "description": "UUID de l'avis",
+                    "type": "string",
+                    "example": "550e8400-e29b-41d4-a716-446655440000"
+                },
+                "productID": {
+                    "description": "ID du produit",
+                    "type": "string",
+                    "example": "550e8400-e29b-41d4-a716-446655440000"
+                },
+                "rating": {
+                    "description": "Note de 1 à 5",
+                    "type": "integer",
+                    "example": 5
+                },
+                "updatedAt": {
+                    "description": "Date de mise à jour",
+                    "type": "string",
+                    "example": "2024-01-01T00:00:00Z"
+                },
+                "userEmail": {
+                    "description": "Email de l'utilisateur (pour affichage)",
+                    "type": "string",
+                    "example": "user@example.com"
+                },
+                "userID": {
+                    "description": "ID de l'utilisateur",
+                    "type": "string",
+                    "example": "550e8400-e29b-41d4-a716-446655440000"
+                }
+            }
+        },
         "dtos.UpdateOrderStatusRequest": {
             "description": "Nouveau statut de commande",
             "type": "object",
@@ -1805,6 +2353,24 @@ const docTemplate = `{
                         "CANCELLED"
                     ],
                     "example": "SHIPPED"
+                }
+            }
+        },
+        "dtos.UpdateReviewRequest": {
+            "description": "Mise à jour d'un avis existant",
+            "type": "object",
+            "properties": {
+                "comment": {
+                    "description": "Commentaire (optionnel)",
+                    "type": "string",
+                    "example": "Bon produit mais pourrait être meilleur"
+                },
+                "rating": {
+                    "description": "Note de 1 à 5 (optionnel)",
+                    "type": "integer",
+                    "maximum": 5,
+                    "minimum": 1,
+                    "example": 4
                 }
             }
         },

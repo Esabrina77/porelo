@@ -55,6 +55,7 @@ api/
     <h2>4. Installer les dépendances</h2>
     <pre>
 go get github.com/go-chi/chi/v5
+go get github.com/go-chi/cors
 go get golang.org/x/crypto/bcrypt
 go get github.com/steebchen/prisma-client-go
     </pre>
@@ -104,6 +105,7 @@ import (
 
     "github.com/go-chi/chi/v5"
     "github.com/go-chi/chi/v5/middleware"
+    "github.com/go-chi/cors"
     "api/internal/db"
     "api/internal/routes"
 )
@@ -115,8 +117,20 @@ func main() {
     }
 
     r := chi.NewRouter()
+    
+    // Middleware de base
     r.Use(middleware.Logger)
     r.Use(middleware.Recoverer)
+    
+    // Configuration CORS pour permettre les requêtes depuis le frontend
+    r.Use(cors.Handler(cors.Options{
+        AllowedOrigins:   []string{"http://localhost:3000", "http://localhost:5173"}, // URLs de votre frontend
+        AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+        AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
+        ExposedHeaders:   []string{"Link"},
+        AllowCredentials: true,
+        MaxAge:           300, // Durée de cache pour les pré-requêtes OPTIONS
+    }))
 
     routes.RegisterUserRoutes(r, client)
 
@@ -434,6 +448,104 @@ func RegisterUserRoutes(r chi.Router, client *db.PrismaClient) {
         <li>Ne jamais retourner le mot de passe dans les API (ni même hashé !)</li>
         <li>Utilisez des middlewares pour limiter l'accès aux routes sensibles (authentification, rôle…) – chi le permet facilement.</li>
     </ul>
+
+    <h2>7. Configuration CORS (Cross-Origin Resource Sharing)</h2>
+    <p>Si vous développez une application web avec un frontend séparé (React, Vue, etc.), vous devez configurer CORS pour permettre les requêtes cross-origin.</p>
+    
+    <h3>Pourquoi CORS ?</h3>
+    <p>Par défaut, les navigateurs bloquent les requêtes HTTP entre différents domaines (origins) pour des raisons de sécurité. Par exemple, si votre frontend tourne sur <code>http://localhost:3000</code> et votre API sur <code>http://localhost:8080</code>, le navigateur bloquera les requêtes sans configuration CORS appropriée.</p>
+    
+    <h3>Installation</h3>
+    <pre>go get github.com/go-chi/cors</pre>
+    
+    <h3>Configuration dans main.go</h3>
+    <div class="file-box">
+        <p>Ajoutez le middleware CORS après les autres middlewares :</p>
+<pre>
+import (
+    // ... autres imports
+    "github.com/go-chi/cors"
+)
+
+func main() {
+    // ... connexion DB
+    
+    r := chi.NewRouter()
+    r.Use(middleware.Logger)
+    r.Use(middleware.Recoverer)
+    
+    // Configuration CORS
+    r.Use(cors.Handler(cors.Options{
+        // Origines autorisées (URLs de votre frontend)
+        AllowedOrigins: []string{
+            "http://localhost:3000",  // React par défaut
+            "http://localhost:5173",  // Vite par défaut
+            "http://localhost:8081",  // Autre port
+        },
+        // Méthodes HTTP autorisées
+        AllowedMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"},
+        // En-têtes autorisés
+        AllowedHeaders: []string{
+            "Accept",
+            "Authorization",  // Important pour JWT
+            "Content-Type",
+            "X-CSRF-Token",
+        },
+        // En-têtes exposés au frontend
+        ExposedHeaders: []string{"Link"},
+        // Autoriser les credentials (cookies, auth headers)
+        AllowCredentials: true,
+        // Durée de cache pour les pré-requêtes OPTIONS (en secondes)
+        MaxAge: 300,
+    }))
+    
+    // ... vos routes
+}
+</pre>
+    </div>
+    
+    <h3>Options CORS expliquées</h3>
+    <ul>
+        <li><b>AllowedOrigins</b> : Liste des domaines autorisés à faire des requêtes. En production, remplacez par votre domaine réel (ex: <code>[]string{"https://monsite.com"}</code>)</li>
+        <li><b>AllowedMethods</b> : Méthodes HTTP autorisées (GET, POST, etc.)</li>
+        <li><b>AllowedHeaders</b> : En-têtes HTTP que le client peut envoyer. <code>Authorization</code> est crucial pour JWT.</li>
+        <li><b>AllowCredentials</b> : Permet l'envoi de cookies et headers d'authentification</li>
+        <li><b>MaxAge</b> : Durée de cache pour les pré-requêtes OPTIONS (le navigateur n'enverra pas d'OPTIONS à chaque requête pendant ce temps)</li>
+    </ul>
+    
+    <h3>Configuration pour la production</h3>
+    <div class="file-box">
+        <p>En production, vous pouvez utiliser une variable d'environnement pour les origines autorisées :</p>
+<pre>
+import "os"
+
+// Dans main.go
+allowedOrigins := os.Getenv("ALLOWED_ORIGINS")
+if allowedOrigins == "" {
+    allowedOrigins = "http://localhost:3000" // Valeur par défaut
+}
+
+origins := []string{}
+// Séparez les origines par virgule si plusieurs
+for _, origin := range strings.Split(allowedOrigins, ",") {
+    origins = append(origins, strings.TrimSpace(origin))
+}
+
+r.Use(cors.Handler(cors.Options{
+    AllowedOrigins: origins,
+    // ... autres options
+}))
+</pre>
+    </div>
+    
+    <h3>Tester CORS</h3>
+    <p>Pour vérifier que CORS fonctionne, ouvrez la console de votre navigateur (F12) et faites une requête depuis votre frontend. Vous devriez voir les headers CORS dans la réponse :</p>
+    <ul>
+        <li><code>Access-Control-Allow-Origin</code></li>
+        <li><code>Access-Control-Allow-Methods</code></li>
+        <li><code>Access-Control-Allow-Headers</code></li>
+    </ul>
+    <p class="important">⚠️ Attention : Sans CORS configuré, vous verrez une erreur du type "CORS policy: No 'Access-Control-Allow-Origin' header" dans la console du navigateur.</p>
 
     <h2>Pour aller plus loin</h2>
     <ul>

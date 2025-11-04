@@ -5,9 +5,10 @@ import (
 	"api/internal/dtos"
 	"context"
 	"fmt"
+	"math"
 )
 
-// GetAllProducts récupère tous les produits
+// GetAllProducts récupère tous les produits (sans pagination - pour compatibilité)
 // NOTE: Vous devez d'abord exécuter: npx prisma generate pour régénérer le client
 func GetAllProducts(client *db.PrismaClient) ([]dtos.ProductResponse, error) {
 	ctx := context.Background()
@@ -61,6 +62,111 @@ func GetAllProducts(client *db.PrismaClient) ([]dtos.ProductResponse, error) {
 	}
 
 	return result, nil
+}
+
+// GetProductsPaginated récupère les produits avec pagination
+// page: numéro de page (commence à 1)
+// limit: nombre d'éléments par page (défaut: 10, max: 100)
+func GetProductsPaginated(client *db.PrismaClient, page, limit int) (*dtos.PaginatedProductsResponse, error) {
+	ctx := context.Background()
+
+	// Valider et ajuster les paramètres
+	if page < 1 {
+		page = 1
+	}
+	if limit < 1 {
+		limit = 10
+	}
+	if limit > 100 {
+		limit = 100
+	}
+
+	// Calculer le skip
+	skip := (page - 1) * limit
+
+	// Compter le total de produits
+	total, err := client.Product.FindMany().Exec(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("erreur lors du comptage des produits: %w", err)
+	}
+	totalCount := len(total)
+
+	// Récupérer les produits paginés
+	// Note: Prisma Go utilise Take() et Skip() comme méthodes de chaînage
+	query := client.Product.FindMany()
+
+	// Appliquer Take et Skip
+	if limit > 0 {
+		query = query.Take(limit)
+	}
+	if skip > 0 {
+		query = query.Skip(skip)
+	}
+
+	products, err := query.With(
+		db.Product.Category.Fetch(),
+	).Exec(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("erreur lors de la récupération des produits: %w", err)
+	}
+
+	// Convertir en DTO
+	result := make([]dtos.ProductResponse, len(products))
+	for i, p := range products {
+		var description string
+		if desc, ok := p.Description(); ok {
+			description = string(desc)
+		}
+
+		var imageURL string
+		if img, ok := p.ImageURL(); ok {
+			imageURL = string(img)
+		}
+
+		var categoryID *string
+		var category *dtos.CategoryResponse
+
+		if catID, ok := p.CategoryID(); ok {
+			categoryID = &catID
+			if cat, ok := p.Category(); ok && cat != nil {
+				category = &dtos.CategoryResponse{
+					ID:        cat.ID,
+					Name:      cat.Name,
+					CreatedAt: cat.CreatedAt,
+					UpdatedAt: cat.UpdatedAt,
+				}
+			}
+		}
+
+		result[i] = dtos.ProductResponse{
+			ID:          p.ID,
+			Name:        p.Name,
+			Description: description,
+			Price:       p.Price,
+			Stock:       p.Stock,
+			ImageURL:    imageURL,
+			CategoryID:  categoryID,
+			Category:    category,
+			CreatedAt:   p.CreatedAt,
+			UpdatedAt:   p.UpdatedAt,
+		}
+	}
+
+	// Calculer les métadonnées
+	totalPages := int(math.Ceil(float64(totalCount) / float64(limit)))
+	if totalPages == 0 {
+		totalPages = 1
+	}
+
+	return &dtos.PaginatedProductsResponse{
+		Products:   result,
+		Total:      totalCount,
+		Page:       page,
+		Limit:      limit,
+		TotalPages: totalPages,
+		HasNext:    page < totalPages,
+		HasPrev:    page > 1,
+	}, nil
 }
 
 // GetProductByID récupère un produit par son ID

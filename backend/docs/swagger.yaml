@@ -6,6 +6,12 @@ definitions:
         example: Message d'erreur
         type: string
     type: object
+  docs.SuccessMessage:
+    properties:
+      message:
+        example: Opération réussie
+        type: string
+    type: object
   dtos.CategoryRequest:
     description: Informations catégorie pour création/modification
     properties:
@@ -47,6 +53,27 @@ definitions:
         type: array
     required:
     - items
+    type: object
+  dtos.CreateReviewRequest:
+    description: Avis utilisateur sur un produit
+    properties:
+      comment:
+        description: Commentaire (optionnel)
+        example: Excellent produit, très satisfait !
+        type: string
+      productID:
+        description: ID du produit
+        example: 550e8400-e29b-41d4-a716-446655440000
+        type: string
+      rating:
+        description: Note de 1 à 5 (obligatoire)
+        example: 5
+        maximum: 5
+        minimum: 1
+        type: integer
+    required:
+    - productID
+    - rating
     type: object
   dtos.LoginRequest:
     description: Identifiants de connexion
@@ -151,6 +178,32 @@ definitions:
         description: ID de l'utilisateur
         example: 550e8400-e29b-41d4-a716-446655440000
         type: string
+    type: object
+  dtos.PaginatedProductsResponse:
+    properties:
+      hasNext:
+        description: Y a-t-il une page suivante ?
+        type: boolean
+      hasPrev:
+        description: Y a-t-il une page précédente ?
+        type: boolean
+      limit:
+        description: Nombre d'éléments par page
+        type: integer
+      page:
+        description: Page actuelle
+        type: integer
+      products:
+        description: Liste des produits
+        items:
+          $ref: '#/definitions/dtos.ProductResponse'
+        type: array
+      total:
+        description: Nombre total de produits
+        type: integer
+      totalPages:
+        description: Nombre total de pages
+        type: integer
     type: object
   dtos.PatchCategoryRequest:
     description: Permet de mettre à jour uniquement le nom d'une catégorie
@@ -266,6 +319,59 @@ definitions:
         example: "2024-01-01T00:00:00Z"
         type: string
     type: object
+  dtos.ProductReviewsResponse:
+    description: Liste des avis avec statistiques (moyenne, total)
+    properties:
+      averageRating:
+        description: Note moyenne (0-5)
+        example: 4.5
+        type: number
+      reviews:
+        description: Liste des avis
+        items:
+          $ref: '#/definitions/dtos.ReviewResponse'
+        type: array
+      totalReviews:
+        description: Nombre total d'avis
+        example: 10
+        type: integer
+    type: object
+  dtos.ReviewResponse:
+    description: Informations complètes d'un avis
+    properties:
+      comment:
+        description: Commentaire (optionnel)
+        example: Excellent produit !
+        type: string
+      createdAt:
+        description: Date de création
+        example: "2024-01-01T00:00:00Z"
+        type: string
+      id:
+        description: UUID de l'avis
+        example: 550e8400-e29b-41d4-a716-446655440000
+        type: string
+      productID:
+        description: ID du produit
+        example: 550e8400-e29b-41d4-a716-446655440000
+        type: string
+      rating:
+        description: Note de 1 à 5
+        example: 5
+        type: integer
+      updatedAt:
+        description: Date de mise à jour
+        example: "2024-01-01T00:00:00Z"
+        type: string
+      userEmail:
+        description: Email de l'utilisateur (pour affichage)
+        example: user@example.com
+        type: string
+      userID:
+        description: ID de l'utilisateur
+        example: 550e8400-e29b-41d4-a716-446655440000
+        type: string
+    type: object
   dtos.UpdateOrderStatusRequest:
     description: Nouveau statut de commande
     properties:
@@ -280,6 +386,20 @@ definitions:
         type: string
     required:
     - status
+    type: object
+  dtos.UpdateReviewRequest:
+    description: Mise à jour d'un avis existant
+    properties:
+      comment:
+        description: Commentaire (optionnel)
+        example: Bon produit mais pourrait être meilleur
+        type: string
+      rating:
+        description: Note de 1 à 5 (optionnel)
+        example: 4
+        maximum: 5
+        minimum: 1
+        type: integer
     type: object
   dtos.UserRequest:
     description: Informations utilisateur pour inscription/modification
@@ -868,6 +988,70 @@ paths:
       summary: Mettre à jour un produit
       tags:
       - Products
+  /admin/user/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Supprime un utilisateur par son ID. Réservé aux administrateurs.
+      parameters:
+      - description: ID de l'utilisateur
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/docs.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/docs.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/docs.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Supprimer un utilisateur (Admin uniquement)
+      tags:
+      - Users
+  /admin/users:
+    get:
+      consumes:
+      - application/json
+      description: Récupère la liste de tous les utilisateurs. Réservé aux administrateurs.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dtos.UserResponse'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/docs.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/docs.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/docs.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Liste tous les utilisateurs (Admin uniquement)
+      tags:
+      - Users
   /auth/login:
     post:
       consumes:
@@ -1066,12 +1250,21 @@ paths:
       consumes:
       - application/json
       description: Récupère la liste de tous les produits disponibles avec leurs catégories
-        (authentification requise)
+        (authentification requise). Supporte la pagination via ?page=1&limit=10
+      parameters:
+      - description: 'Numéro de page (défaut: 1)'
+        in: query
+        name: page
+        type: integer
+      - description: 'Nombre d''éléments par page (défaut: 10, max: 100)'
+        in: query
+        name: limit
+        type: integer
       produces:
       - application/json
       responses:
         "200":
-          description: OK
+          description: Si page et limit ne sont pas fournis
           schema:
             items:
               $ref: '#/definitions/dtos.ProductResponse'
@@ -1129,33 +1322,220 @@ paths:
       summary: Détails d'un produit
       tags:
       - Products
-  /user/{id}:
-    delete:
+  /products/{productID}/reviews:
+    get:
       consumes:
       - application/json
-      description: Supprime un utilisateur par son ID
+      description: Récupère tous les avis d'un produit avec statistiques (moyenne,
+        total)
       parameters:
-      - description: ID de l'utilisateur
+      - description: ID du produit
         in: path
-        name: id
+        name: productID
         required: true
         type: string
       produces:
       - application/json
       responses:
-        "204":
-          description: No Content
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dtos.ProductReviewsResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/docs.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/docs.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/docs.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
             $ref: '#/definitions/docs.ErrorResponse'
-      summary: Supprimer un utilisateur
+      security:
+      - BearerAuth: []
+      summary: Liste des avis d'un produit
       tags:
-      - Users
+      - Reviews
+    post:
+      consumes:
+      - application/json
+      description: Permet à un utilisateur authentifié de laisser un avis (note et
+        commentaire) sur un produit
+      parameters:
+      - description: Données de l'avis
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dtos.CreateReviewRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dtos.ReviewResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/docs.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/docs.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/docs.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/docs.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Créer un avis pour un produit
+      tags:
+      - Reviews
+  /products/{productID}/reviews/me:
     get:
       consumes:
       - application/json
-      description: Récupère les informations d'un utilisateur par son ID
+      description: Récupère l'avis de l'utilisateur connecté pour un produit spécifique
+      parameters:
+      - description: ID du produit
+        in: path
+        name: productID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dtos.ReviewResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/docs.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/docs.ErrorResponse'
+        "404":
+          description: Aucun avis trouvé
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/docs.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Avis de l'utilisateur pour un produit
+      tags:
+      - Reviews
+  /reviews/{reviewID}:
+    delete:
+      consumes:
+      - application/json
+      description: Permet à un utilisateur de supprimer son propre avis
+      parameters:
+      - description: ID de l'avis
+        in: path
+        name: reviewID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/docs.SuccessMessage'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/docs.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/docs.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/docs.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/docs.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/docs.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Supprimer un avis
+      tags:
+      - Reviews
+    put:
+      consumes:
+      - application/json
+      description: Permet à un utilisateur de modifier son propre avis
+      parameters:
+      - description: ID de l'avis
+        in: path
+        name: reviewID
+        required: true
+        type: string
+      - description: Données de mise à jour
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dtos.UpdateReviewRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dtos.ReviewResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/docs.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/docs.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/docs.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/docs.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/docs.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Mettre à jour un avis
+      tags:
+      - Reviews
+  /user/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Récupère les informations d'un utilisateur par son ID. L'utilisateur
+        peut voir son propre profil, l'admin peut voir n'importe quel profil.
       parameters:
       - description: ID de l'utilisateur
         in: path
@@ -1169,6 +1549,14 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/dtos.UserResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/docs.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/docs.ErrorResponse'
         "404":
           description: Not Found
           schema:
@@ -1177,13 +1565,16 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/docs.ErrorResponse'
+      security:
+      - BearerAuth: []
       summary: Récupérer un utilisateur
       tags:
       - Users
     put:
       consumes:
       - application/json
-      description: Met à jour les informations d'un utilisateur
+      description: Met à jour les informations d'un utilisateur. L'utilisateur peut
+        modifier son propre profil, l'admin peut modifier n'importe quel profil.
       parameters:
       - description: ID de l'utilisateur
         in: path
@@ -1207,34 +1598,24 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/docs.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/docs.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/docs.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
             $ref: '#/definitions/docs.ErrorResponse'
+      security:
+      - BearerAuth: []
       summary: Mettre à jour un utilisateur
       tags:
       - Users
   /users:
-    get:
-      consumes:
-      - application/json
-      description: Récupère la liste de tous les utilisateurs
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            items:
-              $ref: '#/definitions/dtos.UserResponse'
-            type: array
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/docs.ErrorResponse'
-      summary: Liste tous les utilisateurs
-      tags:
-      - Users
     post:
       consumes:
       - application/json

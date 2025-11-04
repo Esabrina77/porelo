@@ -2,6 +2,17 @@ package dtos
 
 import "time"
 
+// PaginatedProductsResponse représente une réponse paginée de produits
+type PaginatedProductsResponse struct {
+	Products   []ProductResponse `json:"products"`   // Liste des produits
+	Total      int               `json:"total"`      // Nombre total de produits
+	Page       int               `json:"page"`       // Page actuelle
+	Limit      int               `json:"limit"`      // Nombre d'éléments par page
+	TotalPages int               `json:"totalPages"` // Nombre total de pages
+	HasNext    bool              `json:"hasNext"`    // Y a-t-il une page suivante ?
+	HasPrev    bool              `json:"hasPrev"`    // Y a-t-il une page précédente ?
+}
+
 // ProductRequest DTO pour la création/mise à jour d'un produit
 // @Description Informations produit pour création/modification
 type ProductRequest struct {

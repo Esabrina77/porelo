@@ -110,6 +110,7 @@ func main() {
 	routes.RegisterProductRoutes(r, client)
 	routes.RegisterCategoryRoutes(r, client)
 	routes.RegisterOrderRoutes(r, client)
+	r.Mount("/", routes.ReviewRoutes(client))
 	routes.RegisterUserRoutes(r, client)
 
 	port := os.Getenv("PORT")
