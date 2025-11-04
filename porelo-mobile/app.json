@@ -1,0 +1,33 @@
+{
+  "expo": {
+    "name": "PORELO",
+    "slug": "porelo-mobile",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/logo/p_tronc.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/logo/porelo.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#FFFFFF"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.porelo.mobile"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/logo/p_tronc.png",
+        "backgroundColor": "#B6D8F2"
+      },
+      "package": "com.porelo.mobile",
+      "icon": "./assets/logo/p_tronc.png"
+    },
+    "web": {
+      "favicon": "./assets/logo/p_tronc.png"
+    },
+    "plugins": [
+      "expo-font"
+    ]
+  }
+}
