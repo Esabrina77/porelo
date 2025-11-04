@@ -26,6 +26,7 @@ model User {
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   orders    Order[]   // Relation : un utilisateur peut avoir plusieurs commandes
+  reviews   Review[]   // Relation : un utilisateur peut avoir plusieurs avis
 }
 
 model Category {
@@ -52,6 +53,9 @@ model Product {
   
   // Relation avec OrderItem
   orderItems  OrderItem[]
+  
+  // Relation avec Review
+  reviews     Review[]
 }
 
 enum OrderStatus {
@@ -89,5 +93,24 @@ model OrderItem {
   // Relation avec Product
   productID String
   product   Product @relation(fields: [productID], references: [id])
+}
+
+model Review {
+  id        String   @id @default(uuid())
+  rating    Int      // Note de 1 à 5
+  comment   String?  // Commentaire optionnel
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Relation avec User
+  userID    String
+  user      User     @relation(fields: [userID], references: [id], onDelete: Cascade)
+  
+  // Relation avec Product
+  productID String
+  product   Product  @relation(fields: [productID], references: [id], onDelete: Cascade)
+  
+  // Un utilisateur ne peut laisser qu'un seul avis par produit
+  @@unique([userID, productID])
 }
     
