@@ -36,24 +36,29 @@ import {
 // ============================================
 
 /**
- * URL de base de votre API backend
+ * Configuration via variables d'environnement
+ * 
+ * Les variables d'environnement sont définies dans le fichier .env
+ * Expo utilise le préfixe EXPO_PUBLIC_ pour les variables accessibles côté client
  * 
  * IMPORTANT: 
- * - Pour Android Emulator: utilisez 'http://10.0.2.2:8080' (IP spéciale pour accéder à localhost)
+ * - Créez un fichier .env à la racine du projet (voir .env.example)
+ * - Pour Android Emulator: utilisez 'http://10.0.2.2:8080'
  * - Pour iOS Simulator: utilisez 'http://localhost:8080'
- * - Pour un appareil physique: utilisez l'IP de votre machine (ex: 'http://192.168.1.194:8080')
- * - Pour production: remplacez par votre URL de production
- * 
- * Détection automatique:
- * - Si vous êtes sur un appareil physique, remplacez par l'IP de votre machine
- * - Pour trouver votre IP: ipconfig (Windows) ou ifconfig (Mac/Linux)
+ * - Pour un appareil physique: utilisez l'IP de votre machine
+ * - Pour production: utilisez votre URL de prQZAAAAAoduction
  */
-const BASE_URL = __DEV__ 
-  ? 'http://192.168.1.194:8080' // CHANGEZ PAR VOTRE IP POUR APPAREIL PHYSIQUE
-  : 'https://votre-api-production.com';
+const BASE_URL = process.env.EXPO_PUBLIC_API_URL || (
+  __DEV__ 
+    ? 'http://localhost:8080' // Fallback pour développement
+    : 'https://votre-api-production.com' // Fallback pour production
+);
+
+// Timeout des requêtes (en millisecondes)
+const API_TIMEOUT = parseInt(process.env.EXPO_PUBLIC_API_TIMEOUT || '10000', 10);
 
 // Clé utilisée pour stocker le token dans AsyncStorage
-const TOKEN_STORAGE_KEY = '@porelo:token';
+const TOKEN_STORAGE_KEY = process.env.EXPO_PUBLIC_TOKEN_STORAGE_KEY || '@porelo:token';
 
 // ============================================
 // CLIENT AXIOS
@@ -67,7 +72,7 @@ const apiClient: AxiosInstance = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: 10000, // 10 secondes de timeout
+  timeout: API_TIMEOUT,
 });
 
 /**
