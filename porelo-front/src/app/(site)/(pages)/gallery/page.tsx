@@ -16,7 +16,7 @@ export default function GalleryPage() {
             <section style={{ textAlign: 'center', marginBottom: '60px' }}>
                 <h1 style={{ fontSize: '2.5rem', marginBottom: '20px', color: '#333' }}>Galerie</h1>
                 <p style={{ fontSize: '1.2rem', color: '#666', maxWidth: '800px', margin: '0 auto' }}>
-                    Plongez dans l'univers visuel de PORELO. Découvrez nos produits, nos textures et notre inspiration.
+                    Plongez dans l&apos;univers visuel de PORELO. Découvrez nos produits, nos textures et notre inspiration.
                 </p>
             </section>
 

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { fetchProducts } from '@/api/services/productService'; 
+import { fetchProducts } from '@/api/services/productService';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { Product, PaginatedProductsResponse } from '@/api/types';
@@ -10,9 +10,9 @@ import styles from './page.module.css';
 
 export default function ProductsPage() {
     const { isAuthenticated, loading, logout } = useAuth();
-    
+
     // État des produits et pagination
-    const [products, setProducts] = useState<Product[]>([]); 
+    const [products, setProducts] = useState<Product[]>([]);
     const [currentPage, setCurrentPage] = useState<number>(1);
     const [totalPages, setTotalPages] = useState<number>(1);
     const [total, setTotal] = useState<number>(0);
@@ -20,25 +20,13 @@ export default function ProductsPage() {
     const [hasNext, setHasNext] = useState<boolean>(false);
     const [hasPrev, setHasPrev] = useState<boolean>(false);
     const [loadingProducts, setLoadingProducts] = useState<boolean>(false);
-    const [pageError, setPageError] = useState<string | null>(null); 
-    
+    const [pageError, setPageError] = useState<string | null>(null);
+
     const router = useRouter();
-
-    // --- LOGIQUE DE GARDE DE ROUTE (CLIENT SIDE) ---
-    if (loading) {
-        return <div style={{padding: '20px'}}>Vérification de l'authentification en cours...</div>;
-    }
-
-    if (!isAuthenticated) {
-        router.push('/login');
-        return null; 
-    }
-    // --- FIN LOGIQUE DE GARDE ---
-
 
     // Charger les produits quand la page change ou au montage
     useEffect(() => {
-        if (!isAuthenticated) return; 
+        if (!isAuthenticated) return;
 
         const loadProducts = async () => {
             setLoadingProducts(true);
@@ -46,7 +34,7 @@ export default function ProductsPage() {
             try {
                 // Récupérer les produits avec pagination (utilise la valeur par défaut du service)
                 const data: PaginatedProductsResponse = await fetchProducts(currentPage);
-                
+
                 // Mettre à jour l'état avec les produits et les métadonnées de pagination
                 setProducts(data.products);
                 setTotalPages(data.totalPages);
@@ -69,6 +57,17 @@ export default function ProductsPage() {
         loadProducts();
     }, [isAuthenticated, currentPage, router, logout]);
 
+    // --- LOGIQUE DE GARDE DE ROUTE (CLIENT SIDE) ---
+    if (loading) {
+        return <div style={{ padding: '20px' }}>Vérification de l&apos;authentification en cours...</div>;
+    }
+
+    if (!isAuthenticated) {
+        router.push('/login');
+        return null;
+    }
+    // --- FIN LOGIQUE DE GARDE ---
+
     // Fonctions de navigation
     const goToPage = (page: number) => {
         if (page >= 1 && page <= totalPages) {
@@ -87,18 +86,18 @@ export default function ProductsPage() {
         if (hasPrev) {
             goToPage(currentPage - 1);
         }
-    }; 
+    };
 
 
     if (pageError) {
-        return <div style={{padding: '20px', color: 'red'}}>Erreur: {pageError}</div>;
+        return <div style={{ padding: '20px', color: 'red' }}>Erreur: {pageError}</div>;
     }
-    
+
     // Générer les numéros de page à afficher
     const getPageNumbers = () => {
         const pages: (number | string)[] = [];
         const maxVisible = 5; // Nombre maximum de pages visibles
-        
+
         if (totalPages <= maxVisible) {
             // Si moins de 5 pages, afficher toutes
             for (let i = 1; i <= totalPages; i++) {
@@ -131,10 +130,10 @@ export default function ProductsPage() {
                 pages.push(totalPages);
             }
         }
-        
+
         return pages;
     };
-    
+
     // Rendu des produits
     return (
         <div className={styles.container}>
@@ -151,18 +150,18 @@ export default function ProductsPage() {
                 <div className={styles.loading}>Chargement des produits...</div>
             ) : products.length === 0 ? (
                 <div className={styles.empty}>Aucun produit trouvé.</div>
-                ) : (
+            ) : (
                 <>
                     <div className={styles.productsGrid}>
                         {products.map((product) => (
-                            <Link 
-                                key={product.id} 
+                            <Link
+                                key={product.id}
                                 href={`/shop/products/${product.id}`}
                                 className={styles.productCard}
                             >
                                 {product.imageURL && (
-                                    <img 
-                                        src={product.imageURL} 
+                                    <img
+                                        src={product.imageURL}
                                         alt={product.name}
                                         className={styles.productImage}
                                     />
@@ -180,8 +179,8 @@ export default function ProductsPage() {
                                         <p className={styles.productCategory}>
                                             {product.category.name}
                                         </p>
-                )}
-            </div>
+                                    )}
+                                </div>
                             </Link>
                         ))}
                     </div>
@@ -212,9 +211,8 @@ export default function ProductsPage() {
                                             key={page}
                                             onClick={() => goToPage(page as number)}
                                             disabled={loadingProducts}
-                                            className={`${styles.pageNumber} ${
-                                                currentPage === page ? styles.active : ''
-                                            }`}
+                                            className={`${styles.pageNumber} ${currentPage === page ? styles.active : ''
+                                                }`}
                                             aria-label={`Page ${page}`}
                                             aria-current={currentPage === page ? 'page' : undefined}
                                         >

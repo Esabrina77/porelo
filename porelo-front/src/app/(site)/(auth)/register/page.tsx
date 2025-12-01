@@ -49,23 +49,23 @@ export default function RegisterPage() {
       <div className={styles.wrapper}>
         <div className={styles.header}>
           <Link href="/">
-            <Image 
-              src="/logo/porelo.png" 
+            <Image
+              src="/logo/porelo.png"
               alt="PORELO Logo"
-              width={250} 
-              height={120} 
+              width={250}
+              height={120}
             />
             <p className="subtitle-display italic">
               Pure skin, pure you
             </p>
           </Link>
         </div>
-        
+
         <div className={styles.card}>
           <h2 className={`subtitle-display text-primary ${styles.cardTitle}`}>
             Créer un compte
           </h2>
-          
+
           <form className={styles.form} onSubmit={handleSubmit}>
             <div className={styles.formGroup}>
               <label htmlFor="email" className={styles.label}>
@@ -77,11 +77,11 @@ export default function RegisterPage() {
                 name="email"
                 className="input-field"
                 placeholder="votre@email.com"
-                onChange={(e)=> setEmail(e.target.value)}
+                onChange={(e) => setEmail(e.target.value)}
                 required
               />
             </div>
-            
+
             <div className={styles.formGroup}>
               <label htmlFor="password" className={styles.label}>
                 Mot de passe
@@ -93,14 +93,14 @@ export default function RegisterPage() {
                 className="input-field"
                 placeholder="••••••••"
                 required
-                onChange={(e)=> setPassword(e.target.value)}
+                onChange={(e) => setPassword(e.target.value)}
                 minLength={6}
               />
               <p className={styles.helpText}>
                 Minimum 6 caractères
               </p>
             </div>
-            
+
             <div className={styles.formGroup}>
               <label htmlFor="confirmPassword" className={styles.label}>
                 Confirmer le mot de passe
@@ -115,7 +115,7 @@ export default function RegisterPage() {
                 required
               />
             </div>
-            
+
             <div className={styles.checkboxGroup}>
               <label className={styles.checkboxLabel}>
                 <input
@@ -126,14 +126,14 @@ export default function RegisterPage() {
                   required
                 />
                 <span>
-                  J'accepte les{" "}
+                  J&apos;accepte les{" "}
                   <a href="#" className={styles.link}>
-                    conditions d'utilisation
+                    conditions d&apos;utilisation
                   </a>
                 </span>
               </label>
             </div>
-            
+
             {message && (
               <div style={{ color: 'red', marginTop: '10px', marginBottom: '10px' }}>
                 {message}

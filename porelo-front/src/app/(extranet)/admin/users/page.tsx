@@ -50,7 +50,7 @@ export default function UsersPage() {
                     <tr style={{ textAlign: 'left', borderBottom: '1px solid #ddd' }}>
                         <th style={{ padding: '10px' }}>Email</th>
                         <th style={{ padding: '10px' }}>Rôle</th>
-                        <th style={{ padding: '10px' }}>Date d'inscription</th>
+                        <th style={{ padding: '10px' }}>Date d&apos;inscription</th>
                         <th style={{ padding: '10px' }}>Actions</th>
                     </tr>
                 </thead>

@@ -7,7 +7,7 @@ export default function AboutPage() {
             <section style={{ textAlign: 'center', marginBottom: '60px' }}>
                 <h1 style={{ fontSize: '2.5rem', marginBottom: '20px', color: '#333' }}>Notre Histoire</h1>
                 <p style={{ fontSize: '1.2rem', color: '#666', maxWidth: '800px', margin: '0 auto' }}>
-                    PORELO est né d'une passion pour la beauté naturelle et authentique.
+                    PORELO est né d&apos;une passion pour la beauté naturelle et authentique.
                     Nous croyons que chaque peau mérite des soins purs, efficaces et respectueux.
                 </p>
             </section>
@@ -53,7 +53,7 @@ export default function AboutPage() {
                     <ul style={{ listStyle: 'none', padding: 0 }}>
                         <li style={{ marginBottom: '15px', display: 'flex', alignItems: 'center', gap: '10px' }}>
                             <span style={{ color: '#4CAF50', fontSize: '1.2rem' }}>✓</span>
-                            <span style={{ color: '#555' }}>Ingrédients d'origine naturelle</span>
+                            <span style={{ color: '#555' }}>Ingrédients d&apos;origine naturelle</span>
                         </li>
                         <li style={{ marginBottom: '15px', display: 'flex', alignItems: 'center', gap: '10px' }}>
                             <span style={{ color: '#4CAF50', fontSize: '1.2rem' }}>✓</span>

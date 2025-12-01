@@ -131,7 +131,7 @@ export default function OrderDetailPage() {
                   {item.product.imageURL ? (
                     <img src={item.product.imageURL} alt={item.product.name} />
                   ) : (
-                    <div className={styles.placeholderImage}>Pas d'image</div>
+                    <div className={styles.placeholderImage}>Pas d&apos;image</div>
                   )}
                 </div>
                 <div className={styles.itemDetails}>
@@ -156,7 +156,7 @@ export default function OrderDetailPage() {
           <h2>Résumé</h2>
           <div className={styles.summaryContent}>
             <div className={styles.summaryRow}>
-              <span>Nombre d'articles</span>
+              <span>Nombre d&apos;articles</span>
               <span>{order.orderItems.length}</span>
             </div>
             <div className={styles.summaryRow}>

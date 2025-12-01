@@ -40,10 +40,10 @@ export default function CartPage() {
       }));
 
       const order = await createOrder({ items: orderItems });
-      
+
       // Vider le panier après commande réussie
       clearCart();
-      
+
       // Rediriger vers la page de confirmation
       router.push(`/shop/orders/${order.id}`);
     } catch (err: any) {
@@ -90,7 +90,7 @@ export default function CartPage() {
                 {item.product.imageURL ? (
                   <img src={item.product.imageURL} alt={item.product.name} />
                 ) : (
-                  <div className={styles.placeholderImage}>Pas d'image</div>
+                  <div className={styles.placeholderImage}>Pas d&apos;image</div>
                 )}
               </div>
 

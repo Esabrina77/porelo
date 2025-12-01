@@ -15,16 +15,16 @@ export default function ProductDetailPage() {
   const router = useRouter();
   const { isAuthenticated, loading: authLoading, user } = useAuth();
   const { addItem } = useCart();
-  
+
   const productId = params.id as string;
-  
+
   const [product, setProduct] = useState<Product | null>(null);
   const [reviews, setReviews] = useState<ProductReviewsResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [quantity, setQuantity] = useState(1);
   const [addingToCart, setAddingToCart] = useState(false);
-  
+
   // Formulaire d'avis
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [reviewRating, setReviewRating] = useState(5);
@@ -67,7 +67,7 @@ export default function ProductDetailPage() {
 
   const handleAddToCart = async () => {
     if (!product) return;
-    
+
     if (product.stock < quantity) {
       alert(`Stock insuffisant. Il ne reste que ${product.stock} produit(s).`);
       return;
@@ -96,10 +96,10 @@ export default function ProductDetailPage() {
         rating: reviewRating,
         comment: reviewComment || undefined,
       });
-      
+
       // Recharger les avis
       await loadReviews();
-      
+
       // Réinitialiser le formulaire
       setReviewComment('');
       setReviewRating(5);
@@ -142,13 +142,13 @@ export default function ProductDetailPage() {
           {product.imageURL ? (
             <img src={product.imageURL} alt={product.name} />
           ) : (
-            <div className={styles.placeholderImage}>Pas d'image</div>
+            <div className={styles.placeholderImage}>Pas d&apos;image</div>
           )}
         </div>
 
         <div className={styles.productInfo}>
           <h1 className={styles.productName}>{product.name}</h1>
-          
+
           {product.category && (
             <p className={styles.category}>
               Catégorie : {product.category.name}

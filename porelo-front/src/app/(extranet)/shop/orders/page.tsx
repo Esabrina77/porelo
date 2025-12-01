@@ -32,7 +32,7 @@ export default function OrdersPage() {
       setError(null);
       const data = await getUserOrders();
       // Trier par date de création (plus récent en premier)
-      const sortedOrders = data.sort((a, b) => 
+      const sortedOrders = data.sort((a, b) =>
         new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
       );
       setOrders(sortedOrders);
@@ -104,7 +104,7 @@ export default function OrdersPage() {
 
       {orders.length === 0 ? (
         <div className={styles.emptyOrders}>
-          <p>Vous n'avez aucune commande pour le moment.</p>
+          <p>Vous n&apos;avez aucune commande pour le moment.</p>
           <Link href="/shop/products" className={styles.shopLink}>
             Commencer vos achats
           </Link>

@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Pense-Bête : Commandes de Déploiement Go/Prisma</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f4f4f4; color: #333; margin: 20px; }
+        .note { background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        h2 { color: #007bff; border-bottom: 2px solid #007bff; padding-bottom: 5px; }
+        pre { background-color: #e9ecef; padding: 10px; border-radius: 4px; overflow-x: auto; }
+        strong { color: #28a745; }
+        ul { list-style-type: none; padding: 0; }
+        li { margin-bottom: 10px; padding-left: 20px; position: relative; }
+        li:before { content: "✅"; position: absolute; left: 0; color: #28a745; }
+    </style>
+</head>
+<body>
+
+<div class="note">
+    <h2>🛠️ Pense-Bête Déploiement Go (API Porelo)</h2>
+    <p>Toutes les commandes doivent être exécutées dans le répertoire racine du backend : <strong>~/websites/porelo/backend</strong>.</p>
+    
+    <h3>1. Correction du Module et Génération du Code (Prisma)</h3>
+    <p>Ces étapes corrigent le problème de résolution du module Go local et génèrent le client DB.</p>
+    
+    <h4>Fichier <code>go.mod</code></h4>
+    <p>Ajouter la ligne suivante à la fin de <code>go.mod</code> pour résoudre les dépendances locales (chemin du module <code>api</code>) :</p>
+    <pre>replace api => .</pre>
+    
+    <h4>Commandes de Génération et de Dépendances</h4>
+    <ul>
+        <li><strong>Nettoyer et télécharger les dépendances manquantes :</strong></li>
+        <pre>go get ./...</pre>
+        <li><strong>Correction de la propriété du fichier généré (si l'utilisateur sabrina ne peut pas l'écraser) :</strong></li>
+        <pre>sudo chown sabrina:sabrina internal/db/db_gen.go</pre>
+        <li><strong>Générer le client Prisma Go (télécharge le binaire requis et écrit <code>db_gen.go</code>) :</strong></li>
+        <pre>go run github.com/steebchen/prisma-client-go generate</pre>
+        <li><strong>Nettoyer les modules Go après génération :</strong></li>
+        <pre>go mod tidy</pre>
+    </ul>
+    
+    <h3>2. Compilation et Gestion du Service</h3>
+    <p>Ces étapes compilent le code en binaire et gèrent le service systemd.</p>
+    <ul>
+        <li><strong>Compiler le code en un binaire nommé <code>app</code> :</strong></li>
+        <pre>/usr/local/go/bin/go build -o app .</pre>
+        <li><strong>Redémarrer le service systemd :</strong></li>
+        <pre>sudo systemctl restart porelo-api.service</pre>
+        <li><strong>Vérifier l'état et le journal d'erreur détaillé du service :</strong></li>
+        <pre>sudo systemctl status porelo-api.service</pre>
+        <pre>sudo journalctl -xeu porelo-api.service</pre>
+    </ul>
+
+    <h3>3. Diagnostic de l'Arborescence (Commandes utilisées)</h3>
+    <p>Commandes clés utilisées pour vérifier l'emplacement des fichiers et des permissions :</p>
+    <ul>
+        <li><strong>Vérifier la présence de fichiers Go dans un répertoire :</strong></li>
+        <pre>ls -l /home/sabrina/websites/porelo/backend/internal/db</pre>
+        <li><strong>Vérifier la propriété et les permissions d'un fichier spécifique :</strong></li>
+        <pre>ls -l internal/db/db_gen.go</pre>
+    </ul>
+</div>
+
+</body>
+</html>
