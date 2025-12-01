@@ -13,10 +13,13 @@ func RegisterAuthRoutes(r chi.Router, client *db.PrismaClient) {
 	// Routes publiques (pas d'authentification requise)
 	r.Post("/auth/register", handlers.RegisterHandler(client))
 	r.Post("/auth/login", handlers.LoginHandler(client))
+	r.Post("/auth/refresh", handlers.RefreshTokenHandler(client))
+	r.Post("/auth/logout", handlers.LogoutHandler(client))
 
 	// Routes protégées (nécessitent une authentification)
 	r.Group(func(r chi.Router) {
 		r.Use(middlewares.AuthMiddleware)
 		r.Get("/auth/me", handlers.MeHandler(client))
+		r.Post("/auth/logout-all", handlers.LogoutAllHandler(client))
 	})
 }

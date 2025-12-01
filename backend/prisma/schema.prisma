@@ -19,14 +19,15 @@ enum Role {
 }
 
 model User {
-  id        String    @id @default(uuid())
-  email     String    @unique
-  password  String    // Mot de passe haché (bcrypt)
-  role      Role      @default(USER) // Rôle par défaut
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  orders    Order[]   // Relation : un utilisateur peut avoir plusieurs commandes
-  reviews   Review[]   // Relation : un utilisateur peut avoir plusieurs avis
+  id            String         @id @default(uuid())
+  email         String         @unique
+  password      String         // Mot de passe haché (bcrypt)
+  role          Role           @default(USER) // Rôle par défaut
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  orders        Order[]        // Relation : un utilisateur peut avoir plusieurs commandes
+  reviews       Review[]       // Relation : un utilisateur peut avoir plusieurs avis
+  refreshTokens RefreshToken[] // Relation : un utilisateur peut avoir plusieurs refresh tokens
 }
 
 model Category {
@@ -112,5 +113,19 @@ model Review {
   
   // Un utilisateur ne peut laisser qu'un seul avis par produit
   @@unique([userID, productID])
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  token     String   @unique // Token unique pour le refresh
+  userID    String
+  user      User     @relation(fields: [userID], references: [id], onDelete: Cascade)
+  expiresAt DateTime // Date d'expiration du refresh token
+  revoked   Boolean  @default(false) // Si le token a été révoqué
+  createdAt DateTime @default(now())
+  
+  @@index([userID])
+  @@index([token])
+  @@index([expiresAt])
 }
     

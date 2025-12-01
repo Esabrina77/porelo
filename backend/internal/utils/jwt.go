@@ -23,15 +23,18 @@ func getJWTSecret() string {
 	secret := os.Getenv("JWT_SECRET")
 	if secret == "" {
 		// Clé par défaut pour le développement (NE PAS UTILISER EN PRODUCTION)
-		return "default-secret-key-change-in-production"
+		return "***************"
 	}
 	return secret
 }
 
 // GenerateToken génère un token JWT avec les informations de l'utilisateur
-func GenerateToken(userID, email, role string) (string, error) {
-	// Durée de vie du token : 24 heures
-	expirationTime := time.Now().Add(24 * time.Hour)
+// duration: durée de vie du token (OBLIGATOIRE, pas de valeur par défaut pour la sécurité)
+func GenerateToken(userID, email, role string, duration time.Duration) (string, error) {
+	if duration == 0 {
+		return "", errors.New("la durée d'expiration du token doit être définie (sécurité obligatoire)")
+	}
+	expirationTime := time.Now().Add(duration)
 
 	claims := &JWTClaims{
 		UserID: userID,

@@ -29,9 +29,8 @@ func ReviewRoutes(client *db.PrismaClient) chi.Router {
 		r.Delete("/reviews/{reviewID}", handlers.DeleteReviewHandler(client))
 	})
 
-	// Route publique pour récupérer tous les avis d'un produit (authentifiée)
+	// Route publique pour récupérer tous les avis d'un produit
 	r.Group(func(r chi.Router) {
-		r.Use(middlewares.AuthMiddleware)
 		r.Get("/products/{productID}/reviews", handlers.GetProductReviewsHandler(client))
 	})
 

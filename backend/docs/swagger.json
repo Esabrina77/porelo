@@ -65,11 +65,11 @@
                 ],
                 "description": "Crée une nouvelle catégorie (admin uniquement)",
                 "consumes": [
-                    "application/json"
-                ],
+                                                                    "application/json"
+                                                                ],
                 "produces": [
-                    "application/json"
-                ],
+                                                                    "application/json"
+                                                                ],
                 "tags": [
                     "Categories"
                 ],
@@ -121,10 +121,10 @@
                         "schema": {
                             "$ref": "#/definitions/docs.ErrorResponse"
                         }
-                    }
-                }
-            }
-        },
+                                                                             }
+                                                                 }
+                                               }
+                                  },
         "/admin/categories/{id}": {
             "get": {
                 "security": [
@@ -134,11 +134,11 @@
                 ],
                 "description": "Récupère les détails d'une catégorie par son ID (admin uniquement)",
                 "consumes": [
-                    "application/json"
-                ],
+                                                                "application/json"
+                                                            ],
                 "produces": [
-                    "application/json"
-                ],
+                                                                "application/json"
+                                                            ],
                 "tags": [
                     "Categories"
                 ],
@@ -181,10 +181,10 @@
                         "description": "Internal Server Error",
                         "schema": {
                             "$ref": "#/definitions/docs.ErrorResponse"
-                        }
-                    }
-                }
-            },
+                                                                         }
+                                                             }
+                                           }
+                               },
             "put": {
                 "security": [
                     {
@@ -193,11 +193,11 @@
                 ],
                 "description": "Met à jour une catégorie existante (admin uniquement)",
                 "consumes": [
-                    "application/json"
-                ],
+                                                                       "application/json"
+                                                                   ],
                 "produces": [
-                    "application/json"
-                ],
+                                                                       "application/json"
+                                                                   ],
                 "tags": [
                     "Categories"
                 ],
@@ -273,14 +273,14 @@
                 ],
                 "description": "Supprime une catégorie (admin uniquement)",
                 "consumes": [
-                    "application/json"
-                ],
+                                                                         "application/json"
+                                                                     ],
                 "produces": [
-                    "application/json"
-                ],
+                                                                         "application/json"
+                                                                     ],
                 "tags": [
-                    "Categories"
-                ],
+                                                                     "Categories"
+                                                                 ],
                 "summary": "Supprimer une catégorie",
                 "parameters": [
                     {
@@ -317,26 +317,26 @@
                         "description": "Internal Server Error",
                         "schema": {
                             "$ref": "#/definitions/docs.ErrorResponse"
-                        }
-                    }
-                }
-            },
+                                                                                                 }
+                                                                                  }
+                                                                      }
+                                                    },
             "patch": {
                 "security": [
-                    {
+                                                                          {
                         "BearerAuth": []
-                    }
-                ],
+                                                                          }
+                                                                      ],
                 "description": "Met à jour uniquement le nom d'une catégorie (admin uniquement). Exemple: changer uniquement le nom sans recréer la catégorie.",
                 "consumes": [
-                    "application/json"
-                ],
+                                                                          "application/json"
+                                                                      ],
                 "produces": [
-                    "application/json"
-                ],
+                                                                          "application/json"
+                                                                      ],
                 "tags": [
-                    "Categories"
-                ],
+                                                                      "Categories"
+                                                                  ],
                 "summary": "Mettre à jour partiellement une catégorie",
                 "parameters": [
                     {
@@ -397,11 +397,11 @@
                         "description": "Internal Server Error",
                         "schema": {
                             "$ref": "#/definitions/docs.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
+                                                                                                  }
+                                                                                   }
+                                                                       }
+                                                     }
+                                        },
         "/admin/orders": {
             "get": {
                 "security": [
@@ -411,11 +411,11 @@
                 ],
                 "description": "Récupère toutes les commandes de tous les utilisateurs (admin uniquement)",
                 "consumes": [
-                    "application/json"
-                ],
+                                                                              "application/json"
+                                                                          ],
                 "produces": [
-                    "application/json"
-                ],
+                                                                              "application/json"
+                                                                          ],
                 "tags": [
                     "Orders"
                 ],
@@ -447,24 +447,24 @@
                         "schema": {
                             "$ref": "#/definitions/docs.ErrorResponse"
                         }
-                    }
-                }
-            }
-        },
+                                                                                                      }
+                                                                                       }
+                                                                           }
+                                                         },
         "/admin/orders/{id}/status": {
             "put": {
                 "security": [
-                    {
+                                                                              {
                         "BearerAuth": []
-                    }
-                ],
+                                                                              }
+                                                                          ],
                 "description": "Met à jour le statut d'une commande (PENDING, SHIPPED, DELIVERED, CANCELLED) - admin uniquement",
                 "consumes": [
-                    "application/json"
-                ],
+                                                                              "application/json"
+                                                                          ],
                 "produces": [
-                    "application/json"
-                ],
+                                                                              "application/json"
+                                                                          ],
                 "tags": [
                     "Orders"
                 ],
@@ -523,24 +523,24 @@
                         "schema": {
                             "$ref": "#/definitions/docs.ErrorResponse"
                         }
-                    }
-                }
-            }
-        },
+                                                                                                      }
+                                                                                       }
+                                                                           }
+                                                         },
         "/admin/products": {
             "post": {
                 "security": [
-                    {
+                                                                                 {
                         "BearerAuth": []
-                    }
-                ],
+                                                                                 }
+                                                                             ],
                 "description": "Crée un nouveau produit (admin uniquement)",
                 "consumes": [
-                    "application/json"
-                ],
+                                                                                 "application/json"
+                                                                             ],
                 "produces": [
-                    "application/json"
-                ],
+                                                                                 "application/json"
+                                                                             ],
                 "tags": [
                     "Products"
                 ],
@@ -591,11 +591,11 @@
                         "description": "Internal Server Error",
                         "schema": {
                             "$ref": "#/definitions/docs.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
+                                                                                                         }
+                                                                                          }
+                                                                              }
+                                                            }
+                                             },
         "/admin/products/{id}": {
             "put": {
                 "security": [
@@ -605,11 +605,11 @@
                 ],
                 "description": "Met à jour un produit existant (admin uniquement)",
                 "consumes": [
-                    "application/json"
-                ],
+                                                                     "application/json"
+                                                                 ],
                 "produces": [
-                    "application/json"
-                ],
+                                                                     "application/json"
+                                                                 ],
                 "tags": [
                     "Products"
                 ],
@@ -685,11 +685,11 @@
                 ],
                 "description": "Supprime un produit (admin uniquement)",
                 "consumes": [
-                    "application/json"
-                ],
+                                                                                 "application/json"
+                                                                             ],
                 "produces": [
-                    "application/json"
-                ],
+                                                                                 "application/json"
+                                                                             ],
                 "tags": [
                     "Products"
                 ],
@@ -729,26 +729,26 @@
                         "description": "Internal Server Error",
                         "schema": {
                             "$ref": "#/definitions/docs.ErrorResponse"
-                        }
-                    }
-                }
-            },
+                                                                                          }
+                                                                              }
+                                                            }
+                                                },
             "patch": {
                 "security": [
-                    {
+                                                                        {
                         "BearerAuth": []
-                    }
-                ],
+                                                                        }
+                                                                    ],
                 "description": "Met à jour uniquement les champs fournis d'un produit (admin uniquement). Exemple: changer uniquement l'image sans modifier les autres champs.",
                 "consumes": [
-                    "application/json"
-                ],
+                                                                        "application/json"
+                                                                    ],
                 "produces": [
-                    "application/json"
-                ],
+                                                                        "application/json"
+                                                                    ],
                 "tags": [
-                    "Products"
-                ],
+                                                                    "Products"
+                                                                ],
                 "summary": "Mettre à jour partiellement un produit",
                 "parameters": [
                     {
@@ -809,11 +809,11 @@
                         "description": "Internal Server Error",
                         "schema": {
                             "$ref": "#/definitions/docs.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
+                                                                                                }
+                                                                                 }
+                                                                     }
+                                                   }
+                                      },
         "/admin/user/{id}": {
             "delete": {
                 "security": [
@@ -823,11 +823,11 @@
                 ],
                 "description": "Supprime un utilisateur par son ID. Réservé aux administrateurs.",
                 "consumes": [
-                    "application/json"
-                ],
+                                                                            "application/json"
+                                                                        ],
                 "produces": [
-                    "application/json"
-                ],
+                                                                            "application/json"
+                                                                        ],
                 "tags": [
                     "Users"
                 ],
@@ -963,24 +963,24 @@
                         "schema": {
                             "$ref": "#/definitions/docs.ErrorResponse"
                         }
-                    }
-                }
-            }
-        },
+                                                                                                    }
+                                                                                     }
+                                                                         }
+                                                       },
         "/auth/me": {
             "get": {
                 "security": [
-                    {
+                                                                               {
                         "BearerAuth": []
-                    }
-                ],
+                                                                               }
+                                                                           ],
                 "description": "Récupère les informations de l'utilisateur connecté via le token JWT",
                 "consumes": [
-                    "application/json"
-                ],
+                                                                               "application/json"
+                                                                           ],
                 "produces": [
-                    "application/json"
-                ],
+                                                                               "application/json"
+                                                                           ],
                 "tags": [
                     "Authentication"
                 ],
@@ -1054,11 +1054,11 @@
                         "description": "Internal Server Error",
                         "schema": {
                             "$ref": "#/definitions/docs.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
+                                                                                                       }
+                                                                                        }
+                                                                            }
+                                                          }
+                                           },
         "/orders": {
             "get": {
                 "security": [
@@ -1068,14 +1068,14 @@
                 ],
                 "description": "Récupère toutes les commandes de l'utilisateur connecté",
                 "consumes": [
-                    "application/json"
-                ],
+                                                               "application/json"
+                                                           ],
                 "produces": [
-                    "application/json"
-                ],
+                                                               "application/json"
+                                                           ],
                 "tags": [
-                    "Orders"
-                ],
+                                                           "Orders"
+                                                       ],
                 "summary": "Liste les commandes de l'utilisateur",
                 "responses": {
                     "200": {
@@ -1097,26 +1097,26 @@
                         "description": "Internal Server Error",
                         "schema": {
                             "$ref": "#/definitions/docs.ErrorResponse"
-                        }
-                    }
-                }
-            },
+                                                                                       }
+                                                                        }
+                                                            }
+                                          },
             "post": {
                 "security": [
-                    {
+                                                                {
                         "BearerAuth": []
-                    }
-                ],
+                                                                }
+                                                            ],
                 "description": "Crée une nouvelle commande avec les produits sélectionnés. Le stock est automatiquement déduit.",
                 "consumes": [
-                    "application/json"
-                ],
+                                                                "application/json"
+                                                            ],
                 "produces": [
-                    "application/json"
-                ],
+                                                                "application/json"
+                                                            ],
                 "tags": [
-                    "Orders"
-                ],
+                                                            "Orders"
+                                                        ],
                 "summary": "Créer une commande",
                 "parameters": [
                     {
@@ -1152,11 +1152,11 @@
                         "description": "Internal Server Error",
                         "schema": {
                             "$ref": "#/definitions/docs.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
+                                                                                        }
+                                                                         }
+                                                             }
+                                           }
+                              },
         "/orders/{id}": {
             "get": {
                 "security": [
@@ -1166,14 +1166,14 @@
                 ],
                 "description": "Récupère les détails d'une commande. L'utilisateur peut voir ses propres commandes, l'admin peut voir toutes les commandes.",
                 "consumes": [
-                    "application/json"
-                ],
+                                                                    "application/json"
+                                                                ],
                 "produces": [
-                    "application/json"
-                ],
+                                                                    "application/json"
+                                                                ],
                 "tags": [
-                    "Orders"
-                ],
+                                                                "Orders"
+                                                            ],
                 "summary": "Détails d'une commande",
                 "parameters": [
                     {
@@ -1207,11 +1207,11 @@
                         "description": "Internal Server Error",
                         "schema": {
                             "$ref": "#/definitions/docs.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
+                                                                                            }
+                                                                             }
+                                                                 }
+                                               }
+                                   },
         "/products": {
             "get": {
                 "security": [
@@ -1221,14 +1221,14 @@
                 ],
                 "description": "Récupère la liste de tous les produits disponibles avec leurs catégories (authentification requise). Supporte la pagination via ?page=1\u0026limit=10",
                 "consumes": [
-                    "application/json"
-                ],
+                                                                 "application/json"
+                                                             ],
                 "produces": [
-                    "application/json"
-                ],
+                                                                 "application/json"
+                                                             ],
                 "tags": [
-                    "Products"
-                ],
+                                                             "Products"
+                                                         ],
                 "summary": "Liste tous les produits",
                 "parameters": [
                     {
@@ -1264,11 +1264,11 @@
                         "description": "Internal Server Error",
                         "schema": {
                             "$ref": "#/definitions/docs.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
+                                                                                         }
+                                                                          }
+                                                              }
+                                            }
+                                },
         "/products/{id}": {
             "get": {
                 "security": [
@@ -1278,14 +1278,14 @@
                 ],
                 "description": "Récupère les détails d'un produit par son ID (authentification requise)",
                 "consumes": [
-                    "application/json"
-                ],
+                                                                      "application/json"
+                                                                  ],
                 "produces": [
-                    "application/json"
-                ],
+                                                                      "application/json"
+                                                                  ],
                 "tags": [
-                    "Products"
-                ],
+                                                                  "Products"
+                                                              ],
                 "summary": "Détails d'un produit",
                 "parameters": [
                     {
@@ -1325,11 +1325,11 @@
                         "description": "Internal Server Error",
                         "schema": {
                             "$ref": "#/definitions/docs.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
+                                                                                              }
+                                                                               }
+                                                                   }
+                                                 }
+                                     },
         "/products/{productID}/reviews": {
             "get": {
                 "security": [
@@ -1339,11 +1339,11 @@
                 ],
                 "description": "Récupère tous les avis d'un produit avec statistiques (moyenne, total)",
                 "consumes": [
-                    "application/json"
-                ],
+                                                                  "application/json"
+                                                              ],
                 "produces": [
-                    "application/json"
-                ],
+                                                                  "application/json"
+                                                              ],
                 "tags": [
                     "Reviews"
                 ],
@@ -1398,11 +1398,11 @@
                 ],
                 "description": "Permet à un utilisateur authentifié de laisser un avis (note et commentaire) sur un produit",
                 "consumes": [
-                    "application/json"
-                ],
+                                                                  "application/json"
+                                                              ],
                 "produces": [
-                    "application/json"
-                ],
+                                                                  "application/json"
+                                                              ],
                 "tags": [
                     "Reviews"
                 ],
@@ -1506,10 +1506,10 @@
                         "schema": {
                             "$ref": "#/definitions/docs.ErrorResponse"
                         }
-                    }
-                }
-            }
-        },
+                                                                                          }
+                                                                           }
+                                                               }
+                                             },
         "/reviews/{reviewID}": {
             "put": {
                 "security": [
@@ -1519,11 +1519,11 @@
                 ],
                 "description": "Permet à un utilisateur de modifier son propre avis",
                 "consumes": [
-                    "application/json"
-                ],
+                                                                     "application/json"
+                                                                 ],
                 "produces": [
-                    "application/json"
-                ],
+                                                                     "application/json"
+                                                                 ],
                 "tags": [
                     "Reviews"
                 ],
@@ -1666,8 +1666,8 @@
                     "application/json"
                 ],
                 "tags": [
-                    "Users"
-                ],
+                                                                 "Users"
+                                                             ],
                 "summary": "Récupérer un utilisateur",
                 "parameters": [
                     {
@@ -1719,14 +1719,14 @@
                 ],
                 "description": "Met à jour les informations d'un utilisateur. L'utilisateur peut modifier son propre profil, l'admin peut modifier n'importe quel profil.",
                 "consumes": [
-                    "application/json"
-                ],
+                                                              "application/json"
+                                                          ],
                 "produces": [
-                    "application/json"
-                ],
+                                                              "application/json"
+                                                          ],
                 "tags": [
-                    "Users"
-                ],
+                                                          "Users"
+                                                      ],
                 "summary": "Mettre à jour un utilisateur",
                 "parameters": [
                     {
@@ -1784,14 +1784,14 @@
             "post": {
                 "description": "Crée un nouvel utilisateur (sans authentification requise)",
                 "consumes": [
-                    "application/json"
-                ],
+                                                               "application/json"
+                                                           ],
                 "produces": [
-                    "application/json"
-                ],
+                                                               "application/json"
+                                                           ],
                 "tags": [
-                    "Users"
-                ],
+                                                           "Users"
+                                                       ],
                 "summary": "Créer un utilisateur",
                 "parameters": [
                     {
@@ -1827,12 +1827,12 @@
                         "description": "Internal Server Error",
                         "schema": {
                             "$ref": "#/definitions/docs.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        }
-    },
+                                                                                       }
+                                                                        }
+                                                            }
+                                          }
+                             }
+              },
     "definitions": {
         "docs.ErrorResponse": {
             "type": "object",
@@ -1856,8 +1856,8 @@
             "description": "Informations catégorie pour création/modification",
             "type": "object",
             "required": [
-                "name"
-            ],
+                                                                      "name"
+                                                                  ],
             "properties": {
                 "name": {
                     "description": "Nom de la catégorie",
@@ -1896,8 +1896,8 @@
             "description": "Requête de création de commande",
             "type": "object",
             "required": [
-                "items"
-            ],
+                                                                         "items"
+                                                                     ],
             "properties": {
                 "items": {
                     "description": "Liste des items de la commande (minimum 1)",
@@ -1905,10 +1905,10 @@
                     "minItems": 1,
                     "items": {
                         "$ref": "#/definitions/dtos.OrderItemRequest"
-                    }
-                }
-            }
-        },
+                                                                                                   }
+                                                                                     }
+                                                                       }
+                                                    },
         "dtos.CreateReviewRequest": {
             "description": "Avis utilisateur sur un produit",
             "type": "object",
@@ -1940,9 +1940,9 @@
             "description": "Identifiants de connexion",
             "type": "object",
             "required": [
-                "email",
-                "password"
-            ],
+                                                                   "email",
+                                                                   "password"
+                                                               ],
             "properties": {
                 "email": {
                     "description": "Email de l'utilisateur",
@@ -1970,18 +1970,18 @@
                     "allOf": [
                         {
                             "$ref": "#/definitions/dtos.UserResponse"
-                        }
-                    ]
-                }
-            }
-        },
+                                                                                                 }
+                                                                                             ]
+                                                                               }
+                                                                  }
+                                               },
         "dtos.OrderItemRequest": {
             "description": "Item de commande avec produit et quantité",
             "type": "object",
             "required": [
-                "productID",
-                "quantity"
-            ],
+                                                                       "productID",
+                                                                       "quantity"
+                                                                   ],
             "properties": {
                 "productID": {
                     "description": "ID du produit",
@@ -2054,11 +2054,11 @@
                     "description": "Statut de la commande",
                     "type": "string",
                     "enum": [
-                        "PENDING",
-                        "SHIPPED",
-                        "DELIVERED",
-                        "CANCELLED"
-                    ],
+                                                                                                  "PENDING",
+                                                                                                  "SHIPPED",
+                                                                                                  "DELIVERED",
+                                                                                                  "CANCELLED"
+                                                                                              ],
                     "example": "PENDING"
                 },
                 "totalAmount": {
@@ -2165,9 +2165,9 @@
             "description": "Informations produit pour création/modification",
             "type": "object",
             "required": [
-                "name",
-                "price"
-            ],
+                                                                     "name",
+                                                                     "price"
+                                                                 ],
             "properties": {
                 "categoryID": {
                     "description": "ID de la catégorie (optionnel)",
@@ -2334,18 +2334,18 @@
             "description": "Nouveau statut de commande",
             "type": "object",
             "required": [
-                "status"
-            ],
+                                                                               "status"
+                                                                           ],
             "properties": {
                 "status": {
                     "description": "Nouveau statut",
                     "type": "string",
                     "enum": [
-                        "PENDING",
-                        "SHIPPED",
-                        "DELIVERED",
-                        "CANCELLED"
-                    ],
+                                                                                                             "PENDING",
+                                                                                                             "SHIPPED",
+                                                                                                             "DELIVERED",
+                                                                                                             "CANCELLED"
+                                                                                                         ],
                     "example": "SHIPPED"
                 }
             }
@@ -2372,9 +2372,9 @@
             "description": "Informations utilisateur pour inscription/modification",
             "type": "object",
             "required": [
-                "email",
-                "password"
-            ],
+                                                                  "email",
+                                                                  "password"
+                                                              ],
             "properties": {
                 "email": {
                     "description": "Email de l'utilisateur",
@@ -2412,19 +2412,19 @@
                     "description": "Rôle: USER ou ADMIN",
                     "type": "string",
                     "enum": [
-                        "USER",
-                        "ADMIN"
-                    ],
+                                                                                               "USER",
+                                                                                               "ADMIN"
+                                                                                           ],
                     "example": "USER"
                 },
                 "updatedAt": {
                     "description": "Date de mise à jour",
                     "type": "string",
                     "example": "2024-01-01T00:00:00Z"
-                }
-            }
-        }
-    },
+                                                                                   }
+                                                                 }
+                                              }
+                    },
     "securityDefinitions": {
         "BearerAuth": {
             "description": "Type \"Bearer\" suivi d'un espace et du token JWT. Exemple: \"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\"",

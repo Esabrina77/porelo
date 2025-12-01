@@ -63,18 +63,22 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
 	httpSwagger "github.com/swaggo/http-swagger"
 
-	_ "api/docs" // Documentation Swagger générée - nécessaire pour initialiser SwaggerInfo
+	_ "api/docs"            // Documentation Swagger générée - nécessaire pour initialiser SwaggerInfo
+	_ "api/internal/config" // Charge automatiquement le .env via init()
 	"api/internal/db"
+	"api/internal/middlewares"
 	"api/internal/routes"
 )
 
 func main() {
+
 	client := db.NewClient()
 	if err := client.Connect(); err != nil {
 		log.Fatal("Erreur de connexion Prisma: ", err)
@@ -85,6 +89,9 @@ func main() {
 	// Middleware de base
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
+
+	// Rate limiting global : 100 requêtes par minute par IP
+	r.Use(middlewares.RateLimitMiddleware(100, time.Minute))
 
 	// Configuration CORS pour permettre les requêtes depuis le frontend et mobile
 	r.Use(cors.Handler(cors.Options{
@@ -104,8 +111,31 @@ func main() {
 		httpSwagger.DeepLinking(true),
 		httpSwagger.DocExpansion("list"),
 	))
+	// //sur "/", evonyer "bonjour" sur la page
+	// r.Get("/", func(w http.ResponseWriter, r *http.Request) {
+	// 	w.Write([]byte("bonjour"))
+	// })
 
-	// Enregistrement des routes
+	// Versioning API : toutes les routes sous /api/v1
+	r.Route("/api/v1", func(r chi.Router) {
+		// Routes d'authentification (publiques)
+		routes.RegisterAuthRoutes(r, client)
+
+		// Routes des avis (gestion interne de l'auth selon les endpoints)
+		r.Mount("/", routes.ReviewRoutes(client))
+
+		// Routes protégées nécessitant authentification
+		r.Group(func(r chi.Router) {
+			r.Use(middlewares.AuthMiddleware)
+			routes.RegisterProductRoutes(r, client)
+			routes.RegisterCategoryRoutes(r, client)
+			routes.RegisterOrderRoutes(r, client)
+			routes.RegisterUserRoutes(r, client)
+		})
+	})
+
+	// Routes sans versioning (pour compatibilité avec l'existant)
+	// TODO: À supprimer progressivement une fois que le frontend utilise /api/v1
 	routes.RegisterAuthRoutes(r, client)
 	routes.RegisterProductRoutes(r, client)
 	routes.RegisterCategoryRoutes(r, client)

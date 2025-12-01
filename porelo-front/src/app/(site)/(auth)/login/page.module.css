@@ -1,0 +1,105 @@
+.main {
+ 
+  display: flex;
+  align-items: center;
+  justify-content: center;
+ margin: 30px 0;
+ 
+}
+
+.wrapper {
+  width: 100%;
+  max-width: 28rem;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.headerLogo {
+  margin: 0 auto 1rem;
+}
+
+.card {
+  background-color: var(--color-surface-white);
+  padding: 2rem;
+  border-radius: 1rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  border: 1px solid var(--color-border-light);
+}
+
+.cardTitle {
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+}
+
+.label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-text-primary);
+  margin-bottom: 0.5rem;
+}
+
+.checkboxGroup {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+}
+
+.checkbox {
+  margin-right: 0.5rem;
+  border-radius: 0.25rem;
+  border: 1px solid var(--color-border-light);
+  width: 1rem;
+  height: 1rem;
+}
+
+.forgotLink {
+  font-size: 0.875rem;
+  color: var(--color-primary);
+}
+
+.forgotLink:hover {
+  text-decoration: underline;
+}
+
+.submitButton {
+  width: 100%;
+}
+
+.footer {
+  text-align: center;
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+  margin-top: 1.5rem;
+}
+
+.registerLink {
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+.registerLink:hover {
+  text-decoration: underline;
+}
+

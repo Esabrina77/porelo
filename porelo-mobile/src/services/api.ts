@@ -12,6 +12,7 @@
 
 import axios, { AxiosInstance, AxiosError } from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Platform } from 'react-native';
 import {
   User,
   RegisterRequest,
@@ -36,23 +37,57 @@ import {
 // ============================================
 
 /**
- * Configuration via variables d'environnement
+ * CONFIGURATION RAPIDE POUR LE DÉVELOPPEMENT
  * 
- * Les variables d'environnement sont définies dans le fichier .env
- * Expo utilise le préfixe EXPO_PUBLIC_ pour les variables accessibles côté client
+ * Pour trouver votre IP locale (nécessaire pour téléphone physique) :
+ * - Windows : Ouvrez PowerShell et tapez : ipconfig
+ *   Cherchez "Adresse IPv4" sous "Carte réseau sans fil Wi-Fi" ou "Ethernet"
+ *   Exemple : 192.168.1.100
  * 
- * IMPORTANT: 
- * - Créez un fichier .env à la racine du projet (voir .env.example)
- * - Pour Android Emulator: utilisez 'http://10.0.2.2:8080'
- * - Pour iOS Simulator: utilisez 'http://localhost:8080'
- * - Pour un appareil physique: utilisez l'IP de votre machine
- * - Pour production: utilisez votre URL de prQZAAAAAoduction
+ * - Mac/Linux : Ouvrez Terminal et tapez : ifconfig | grep "inet "
+ *   Cherchez l'IP qui commence par 192.168.x.x ou 10.0.x.x
+ * 
+ * IMPORTANT : Remplacez l'IP ci-dessous par VOTRE IP locale !
  */
-const BASE_URL = process.env.EXPO_PUBLIC_API_URL || (
-  __DEV__ 
-    ? 'http://localhost:8080' // Fallback pour développement
-    : 'https://votre-api-production.com' // Fallback pour production
-);
+const DEV_API_IP = '10.15.3.89'; // IP de votre machine (trouvée via Metro Expo)
+const DEV_API_PORT = '8080';
+
+/**
+ * Configuration de l'URL de l'API
+ */
+const getDefaultBaseURL = (): string => {
+  // En production, utiliser l'URL de production
+  if (!__DEV__) {
+    return 'https://api.porelo.com';
+  }
+  
+  // En développement
+  if (Platform.OS === 'android') {
+    // Pour Android : utiliser l'IP locale configurée ci-dessus
+    // Si vous utilisez l'émulateur, changez DEV_API_IP en '10.0.2.2'
+    return `http://${DEV_API_IP}:${DEV_API_PORT}`;
+  } else if (Platform.OS === 'ios') {
+    // iOS Simulator peut utiliser localhost
+    return `http://localhost:${DEV_API_PORT}`;
+  } else {
+    // Web
+    return `http://localhost:${DEV_API_PORT}`;
+  }
+};
+
+// Log de l'URL utilisée pour le debug
+const BASE_URL = getDefaultBaseURL();
+
+console.log('========================================');
+console.log('[API] Configuration:');
+console.log('[API] Base URL:', BASE_URL);
+console.log('[API] Plateforme:', Platform.OS);
+console.log('[API] Mode:', __DEV__ ? 'DEVELOPPEMENT' : 'PRODUCTION');
+if (__DEV__ && Platform.OS === 'android') {
+  console.log('[API] ⚠️  IP configurée:', DEV_API_IP);
+  console.log('[API] 💡 Si ça ne fonctionne pas, vérifiez que cette IP est correcte !');
+}
+console.log('========================================');
 
 // Timeout des requêtes (en millisecondes)
 const API_TIMEOUT = parseInt(process.env.EXPO_PUBLIC_API_TIMEOUT || '10000', 10);
@@ -76,28 +111,54 @@ const apiClient: AxiosInstance = axios.create({
 });
 
 /**
+ * Routes publiques qui ne nécessitent pas de token JWT
+ */
+const PUBLIC_ROUTES = ['/auth/login', '/auth/register'];
+
+/**
  * Intercepteur de requête : ajoute automatiquement le token JWT
  * 
  * Avant chaque requête, on vérifie si on a un token stocké.
  * Si oui, on l'ajoute dans le header Authorization.
+ * 
+ * IMPORTANT: Les routes publiques (/auth/login, /auth/register) ne doivent PAS recevoir de token.
  */
 apiClient.interceptors.request.use(
   async (config) => {
-    // Récupérer le token depuis AsyncStorage
+    const url = config.url || '';
+    const fullURL = `${BASE_URL}${url}`;
+    const method = config.method?.toUpperCase() || 'GET';
+    
+    console.log('----------------------------------------');
+    console.log(`[API] → ${method} ${fullURL}`);
+    
+    // Vérifier si c'est une route publique
+    const isPublicRoute = PUBLIC_ROUTES.some(route => url.includes(route));
+    
+    if (isPublicRoute) {
+      console.log('[API] Route publique - pas de token nécessaire');
+      console.log('[API] Body:', config.data ? JSON.stringify(config.data) : 'aucun');
+      console.log('----------------------------------------');
+      return config;
+    }
+    
+    // Pour les routes protégées, ajouter le token si disponible
     const token = await AsyncStorage.getItem(TOKEN_STORAGE_KEY);
     
     if (token) {
       // Ajouter le token dans le header Authorization
       // Format: "Bearer <token>"
       config.headers.Authorization = `Bearer ${token}`;
-      console.log('[API] Token ajouté à la requête:', config.url);
+      console.log('[API] Token ajouté à la requête');
     } else {
-      console.warn('[API] Aucun token trouvé pour la requête:', config.url);
+      console.warn('[API] ⚠️  Aucun token trouvé pour la requête protégée');
     }
     
+    console.log('----------------------------------------');
     return config;
   },
   (error) => {
+    console.error('[API] Erreur dans l\'intercepteur de requête:', error);
     return Promise.reject(error);
   }
 );
@@ -113,12 +174,64 @@ apiClient.interceptors.request.use(
  * car ces routes ne nécessitent pas de token et peuvent retourner 401 pour d'autres raisons.
  */
 apiClient.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    console.log('----------------------------------------');
+    console.log(`[API] ← ${response.status} ${response.config.method?.toUpperCase()} ${response.config.url}`);
+    console.log('[API] Réponse reçue avec succès');
+    console.log('----------------------------------------');
+    return response;
+  },
   async (error: AxiosError<ApiError>) => {
+    const url = error.config?.url || '';
+    const method = error.config?.method?.toUpperCase() || 'UNKNOWN';
+    
+    // Gestion des erreurs réseau (pas de réponse du serveur)
+    if (!error.response) {
+      if (error.code === 'ECONNABORTED') {
+        console.error('[API] Timeout - Le serveur ne répond pas dans les temps:', url);
+        error.message = 'Le serveur ne répond pas. Vérifiez votre connexion et que le backend est lancé.';
+      } else if (error.code === 'ECONNREFUSED' || error.message?.includes('Network Error')) {
+        console.error('[API] Erreur réseau - Impossible de se connecter au serveur:', BASE_URL);
+        console.error('[API] Vérifiez que le backend est lancé et accessible depuis', Platform.OS);
+        
+        if (Platform.OS === 'android') {
+          const instructions = `❌ Impossible de se connecter au serveur (${BASE_URL})
+
+📱 Pour un téléphone physique Android :
+1. Trouvez votre IP locale :
+   - Windows : Ouvrez PowerShell → tapez "ipconfig"
+   - Cherchez "Adresse IPv4" (ex: 192.168.1.100)
+   
+2. Modifiez DEV_API_IP dans src/services/api.ts :
+   const DEV_API_IP = 'VOTRE_IP_ICI';
+   
+3. Assurez-vous que :
+   ✓ Le backend est lancé (go run main.go ou fresh)
+   ✓ Le téléphone et votre PC sont sur le même réseau Wi-Fi
+   ✓ Le firewall Windows autorise le port 8080
+
+📱 Pour l'émulateur Android :
+   Changez DEV_API_IP en '10.0.2.2' dans api.ts`;
+          
+          error.message = instructions;
+        } else {
+          error.message = `Impossible de se connecter au serveur (${BASE_URL}).\n\nVérifiez que:\n1. Le backend est lancé\n2. L'URL est correcte\n3. Vous êtes sur le même réseau`;
+        }
+      } else {
+        console.error('[API] Erreur réseau inconnue:', error.message, error.code);
+        error.message = error.message || 'Erreur de connexion réseau';
+      }
+      return Promise.reject(error);
+    }
+    
+    // Gestion des erreurs HTTP
+    const status = error.response.status;
+    const errorData = error.response.data;
+    
+    console.error(`[API] Erreur ${status} ${method} ${url}:`, errorData);
+    
     // Si erreur 401 (non autorisé), le token est invalide
-    if (error.response?.status === 401) {
-      const url = error.config?.url || '';
-      
+    if (status === 401) {
       // Ne pas supprimer le token pour les routes d'authentification
       // Ne pas supprimer le token pour les routes reviews/me qui peuvent retourner 401 (pas encore d'avis)
       if (!url.includes('/auth/login') && 
@@ -129,6 +242,11 @@ apiClient.interceptors.response.use(
         await AsyncStorage.removeItem(TOKEN_STORAGE_KEY);
         console.log('[API] Token supprimé - déconnexion requise');
       }
+    }
+    
+    // Améliorer le message d'erreur pour les erreurs 500
+    if (status === 500) {
+      error.message = 'Erreur serveur. Veuillez réessayer plus tard.';
     }
     
     return Promise.reject(error);
@@ -173,7 +291,6 @@ export const authService = {
     if (response.data.token) {
       await AsyncStorage.setItem(TOKEN_STORAGE_KEY, response.data.token);
     }
-    
     return response.data;
   },
 

@@ -26,9 +26,23 @@ type LoginRequest struct {
 	Password string `json:"password" example:"password123" binding:"required"`   // Mot de passe
 }
 
-// LoginResponse DTO pour la réponse de connexion (token JWT)
-// @Description Réponse de connexion avec token JWT
+// LoginResponse DTO pour la réponse de connexion (token JWT + Refresh Token)
+// @Description Réponse de connexion avec access token et refresh token
 type LoginResponse struct {
-	Token string       `json:"token" example:"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."` // Token JWT
-	User  UserResponse `json:"user"`                                                    // Informations de l'utilisateur
+	AccessToken  string       `json:"accessToken" example:"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."`  // Access Token JWT (courte durée)
+	RefreshToken string       `json:"refreshToken" example:"550e8400-e29b-41d4-a716-446655440000"`     // Refresh Token (longue durée)
+	User         UserResponse `json:"user"`                                                             // Informations de l'utilisateur
+}
+
+// RefreshTokenRequest DTO pour la requête de refresh token
+// @Description Requête pour obtenir un nouveau access token
+type RefreshTokenRequest struct {
+	RefreshToken string `json:"refreshToken" example:"550e8400-e29b-41d4-a716-446655440000" binding:"required"` // Refresh Token
+}
+
+// RefreshTokenResponse DTO pour la réponse de refresh token
+// @Description Nouveau access token et nouveau refresh token (rotation)
+type RefreshTokenResponse struct {
+	AccessToken  string `json:"accessToken" example:"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."`  // Nouveau Access Token JWT
+	RefreshToken string `json:"refreshToken,omitempty" example:"550e8400-e29b-41d4-a716-446655440000"` // Nouveau Refresh Token (si rotation activée)
 }
